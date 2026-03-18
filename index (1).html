@@ -1,0 +1,1270 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>StudyFlow</title>
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#5b8def">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="StudyFlow">
+<link rel="apple-touch-icon" href="icon-192.png">
+<link href="https://fonts.googleapis.com/css2?family=Heebo:wght@300;400;500;600;700;800;900&family=DM+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #0b0d12;
+  --surface: #13161e;
+  --surface2: #1b1f2b;
+  --surface3: #222738;
+  --border: #2c3144;
+  --accent: #5b8def;
+  --accent2: #ff6b6b;
+  --accent3: #43e97b;
+  --accent4: #ffd166;
+  --text: #e8eaf2;
+  --text2: #8b92b0;
+  --text3: #4e546e;
+  --radius: 14px;
+  --radius-sm: 9px;
+  --nav-h: 60px;
+  --bottom-h: 64px;
+}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
+html,body{height:100%;overscroll-behavior:none;}
+body{
+  font-family:'DM Sans',sans-serif;
+  background:var(--bg);color:var(--text);
+  min-height:100vh;
+}
+body.rtl{direction:rtl;font-family:'Heebo',sans-serif;}
+
+/* ── LANG TOGGLE ── */
+.lang-toggle{
+  position:fixed;top:14px;right:16px;z-index:9999;
+  background:var(--surface2);border:1px solid var(--border);
+  border-radius:20px;padding:4px 6px;display:flex;gap:2px;
+}
+body.rtl .lang-toggle{right:auto;left:16px;}
+.lang-btn{
+  padding:4px 10px;border-radius:16px;border:none;
+  font-size:12px;font-weight:700;cursor:pointer;
+  background:transparent;color:var(--text2);
+  font-family:inherit;transition:all .2s;
+}
+.lang-btn.active{background:var(--accent);color:#fff;}
+
+/* ── AUTH ── */
+#auth-screen{
+  min-height:100vh;display:flex;align-items:center;
+  justify-content:center;padding:20px;
+  background:radial-gradient(ellipse at 40% 20%,#111c3a 0%,var(--bg) 65%);
+}
+.auth-card{
+  background:var(--surface);border:1px solid var(--border);
+  border-radius:24px;padding:36px 28px;width:100%;max-width:380px;
+  box-shadow:0 24px 60px rgba(0,0,0,.5);
+}
+.auth-logo{text-align:center;margin-bottom:32px;}
+.auth-logo .logo-icon{font-size:44px;margin-bottom:10px;}
+.auth-logo h1{font-size:26px;font-weight:800;color:var(--accent);letter-spacing:-0.5px;}
+.auth-logo p{font-size:13px;color:var(--text2);margin-top:4px;}
+.auth-tabs{display:flex;gap:0;margin-bottom:24px;background:var(--surface2);border-radius:10px;padding:4px;}
+.auth-tab{flex:1;padding:8px;text-align:center;border-radius:7px;cursor:pointer;font-size:14px;font-weight:600;color:var(--text2);transition:all .2s;}
+.auth-tab.active{background:var(--accent);color:#fff;}
+.form-group{margin-bottom:16px;}
+.form-group label{display:block;font-size:12px;font-weight:600;color:var(--text2);margin-bottom:6px;text-transform:uppercase;letter-spacing:.5px;}
+.form-group input,.form-group select{
+  width:100%;padding:12px 14px;
+  background:var(--surface2);border:1px solid var(--border);
+  border-radius:10px;color:var(--text);font-size:15px;
+  font-family:inherit;outline:none;transition:border-color .2s;
+}
+.form-group input:focus,.form-group select:focus{border-color:var(--accent);}
+.btn-primary{
+  width:100%;padding:13px;background:var(--accent);
+  border:none;border-radius:10px;color:#fff;
+  font-size:16px;font-weight:700;font-family:inherit;
+  cursor:pointer;transition:all .2s;margin-top:4px;
+}
+.btn-primary:hover{background:#4a7de0;}
+.btn-primary:active{transform:scale(.98);}
+.auth-error{color:var(--accent2);font-size:13px;text-align:center;margin-top:10px;min-height:18px;}
+
+/* ── APP SHELL ── */
+#app{display:none;flex-direction:column;min-height:100vh;}
+
+/* Top bar – desktop only */
+.topbar{
+  background:var(--surface);border-bottom:1px solid var(--border);
+  padding:0 20px;height:var(--nav-h);
+  display:flex;align-items:center;justify-content:space-between;
+  position:sticky;top:0;z-index:100;
+}
+.topbar-brand{font-size:20px;font-weight:800;color:var(--accent);letter-spacing:-.5px;}
+.topbar-nav{display:flex;gap:4px;}
+.nav-btn{
+  padding:7px 14px;border-radius:8px;border:none;
+  background:transparent;color:var(--text2);font-size:14px;
+  font-family:inherit;font-weight:600;cursor:pointer;transition:all .2s;
+}
+.nav-btn:hover,.nav-btn.active{background:var(--surface2);color:var(--text);}
+.topbar-right{display:flex;align-items:center;gap:10px;}
+.user-pill{font-size:13px;color:var(--text2);background:var(--surface2);padding:6px 12px;border-radius:8px;font-weight:600;}
+.logout-btn{
+  padding:6px 12px;border-radius:8px;border:1px solid var(--border);
+  background:transparent;color:var(--text2);font-size:13px;
+  font-family:inherit;cursor:pointer;transition:all .2s;
+}
+.logout-btn:hover{border-color:var(--accent2);color:var(--accent2);}
+
+/* Bottom nav – mobile only */
+.bottom-nav{
+  display:none;position:fixed;bottom:0;left:0;right:0;
+  height:var(--bottom-h);background:var(--surface);
+  border-top:1px solid var(--border);
+  padding:0 4px;padding-bottom:env(safe-area-inset-bottom);
+  z-index:100;
+}
+.bottom-nav-inner{display:flex;height:100%;align-items:center;}
+.bnav-btn{
+  flex:1;display:flex;flex-direction:column;align-items:center;
+  justify-content:center;gap:2px;border:none;background:transparent;
+  color:var(--text3);cursor:pointer;font-family:inherit;
+  padding:4px 2px;border-radius:10px;transition:all .2s;
+  font-size:10px;font-weight:600;white-space:nowrap;
+}
+.bnav-btn .icon{font-size:22px;transition:transform .2s;}
+.bnav-btn.active{color:var(--accent);}
+.bnav-btn.active .icon{transform:scale(1.15);}
+
+/* ── PAGES ── */
+.page-wrap{flex:1;overflow-y:auto;padding-bottom:calc(var(--bottom-h) + 16px);}
+.page{display:none;padding:20px 16px;max-width:900px;margin:0 auto;}
+.page.active{display:block;}
+
+.page-header{margin-bottom:22px;}
+.page-header h2{font-size:22px;font-weight:800;}
+.page-header p{color:var(--text2);font-size:13px;margin-top:3px;}
+
+/* ── WEEK GRID ── */
+.week-scroll{overflow-x:auto;-webkit-overflow-scrolling:touch;margin:0 -16px;padding:0 16px;}
+.week-grid{display:grid;grid-template-columns:repeat(7,minmax(110px,1fr));gap:8px;min-width:700px;margin-bottom:24px;}
+.day-col{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;}
+.day-header{padding:8px 6px;text-align:center;font-size:11px;font-weight:700;color:var(--text2);background:var(--surface2);border-bottom:1px solid var(--border);}
+.day-header.today{color:var(--accent);}
+.day-body{padding:5px;min-height:100px;}
+.day-event{border-radius:6px;padding:4px 6px;margin-bottom:3px;font-size:10px;font-weight:600;line-height:1.4;}
+.event-busy{background:rgba(255,107,107,.15);color:var(--accent2);border-right:2px solid var(--accent2);}
+body:not(.rtl) .event-busy{border-right:none;border-left:2px solid var(--accent2);}
+.event-exam{background:rgba(91,141,239,.18);color:var(--accent);border-right:2px solid var(--accent);}
+body:not(.rtl) .event-exam{border-right:none;border-left:2px solid var(--accent);}
+.event-study{background:rgba(67,233,123,.12);color:var(--accent3);border-right:2px solid var(--accent3);}
+body:not(.rtl) .event-study{border-right:none;border-left:2px solid var(--accent3);}
+
+/* ── AI CARD ── */
+.ai-card{
+  background:linear-gradient(135deg,rgba(91,141,239,.12) 0%,var(--surface) 100%);
+  border:1px solid rgba(91,141,239,.25);
+  border-radius:var(--radius);padding:18px 20px;margin-bottom:22px;
+}
+.ai-card-header{display:flex;align-items:center;gap:10px;margin-bottom:14px;flex-wrap:wrap;}
+.ai-badge{background:var(--accent);color:#fff;font-size:10px;font-weight:700;padding:3px 9px;border-radius:20px;white-space:nowrap;}
+.ai-card-header h3{font-size:15px;font-weight:700;}
+.ai-suggestion{display:flex;align-items:flex-start;gap:10px;padding:9px 0;border-bottom:1px solid rgba(255,255,255,.05);}
+.ai-suggestion:last-child{border-bottom:none;}
+.ai-dot{width:7px;height:7px;border-radius:50%;background:var(--accent3);margin-top:5px;flex-shrink:0;}
+.ai-suggestion p{font-size:13px;color:var(--text);line-height:1.6;}
+.ai-loading{color:var(--text2);font-size:13px;text-align:center;padding:16px;}
+.btn-ai{
+  padding:8px 16px;background:var(--accent);border:none;border-radius:8px;
+  color:#fff;font-size:13px;font-weight:700;font-family:inherit;
+  cursor:pointer;transition:opacity .2s;margin-top:10px;display:inline-block;
+}
+.btn-ai:hover{opacity:.85;}
+.btn-ai:disabled{opacity:.5;cursor:not-allowed;}
+
+/* ── SECTION HEADER ── */
+.section-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;margin-top:8px;}
+.section-header h3{font-size:16px;font-weight:700;}
+.btn-add{
+  padding:7px 14px;background:var(--accent);border:none;border-radius:8px;
+  color:#fff;font-size:13px;font-weight:700;font-family:inherit;cursor:pointer;
+  display:flex;align-items:center;gap:5px;transition:opacity .2s;white-space:nowrap;
+}
+.btn-add:hover{opacity:.85;}
+.btn-add:active{transform:scale(.97);}
+
+/* ── ACTIVITY CARDS ── */
+.activity-list{display:flex;flex-direction:column;gap:8px;margin-bottom:28px;}
+.activity-card{
+  background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);
+  padding:12px 14px;display:flex;align-items:center;gap:12px;
+}
+.activity-icon{font-size:20px;flex-shrink:0;}
+.activity-info{flex:1;min-width:0;}
+.activity-info h4{font-size:14px;font-weight:700;margin-bottom:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.activity-info p{font-size:12px;color:var(--text2);}
+.activity-badge{font-size:10px;font-weight:700;padding:3px 9px;border-radius:20px;white-space:nowrap;flex-shrink:0;}
+.activity-badge.weekly{background:rgba(91,141,239,.18);color:var(--accent);}
+.activity-badge.once{background:rgba(255,107,107,.15);color:var(--accent2);}
+.delete-btn{background:none;border:none;color:var(--text3);font-size:16px;cursor:pointer;padding:4px 6px;border-radius:6px;transition:all .2s;flex-shrink:0;}
+.delete-btn:hover{background:rgba(255,107,107,.15);color:var(--accent2);}
+
+/* ── EXAM CARDS ── */
+.exam-card{
+  background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);
+  padding:14px 16px;display:flex;align-items:center;gap:14px;margin-bottom:8px;
+}
+.exam-date-box{background:var(--surface2);border-radius:10px;padding:7px 12px;text-align:center;min-width:50px;flex-shrink:0;}
+.exam-date-box .day-num{font-size:20px;font-weight:900;color:var(--accent);line-height:1;}
+.exam-date-box .month{font-size:10px;color:var(--text2);font-weight:600;}
+.exam-info{flex:1;min-width:0;}
+.exam-info h4{font-size:14px;font-weight:700;margin-bottom:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.exam-info p{font-size:12px;color:var(--text2);}
+.days-left{font-size:11px;font-weight:700;padding:3px 9px;border-radius:20px;white-space:nowrap;flex-shrink:0;}
+.days-left.urgent{background:rgba(255,107,107,.15);color:var(--accent2);}
+.days-left.soon{background:rgba(255,209,102,.15);color:var(--accent4);}
+.days-left.ok{background:rgba(67,233,123,.1);color:var(--accent3);}
+
+/* ── EMPTY STATE ── */
+.empty-state{text-align:center;padding:36px 16px;color:var(--text3);}
+.empty-state .big{font-size:40px;margin-bottom:10px;}
+.empty-state p{font-size:14px;}
+
+/* ── MODAL ── */
+.modal-overlay{
+  position:fixed;inset:0;background:rgba(0,0,0,.75);
+  display:flex;align-items:flex-end;justify-content:center;
+  z-index:1000;backdrop-filter:blur(4px);
+  opacity:0;pointer-events:none;transition:opacity .2s;
+}
+.modal-overlay.open{opacity:1;pointer-events:all;}
+.modal{
+  background:var(--surface);border:1px solid var(--border);
+  border-radius:24px 24px 0 0;padding:24px 20px;
+  width:100%;max-width:520px;
+  box-shadow:0 -8px 40px rgba(0,0,0,.5);
+  transform:translateY(40px);transition:transform .25s ease;
+  max-height:90vh;overflow-y:auto;
+  padding-bottom:calc(24px + env(safe-area-inset-bottom));
+}
+.modal-overlay.open .modal{transform:translateY(0);}
+.modal-handle{width:36px;height:4px;background:var(--border);border-radius:2px;margin:0 auto 20px;}
+.modal h3{font-size:18px;font-weight:800;margin-bottom:20px;}
+.modal .form-group select{direction:inherit;}
+.days-checkboxes{display:flex;flex-wrap:wrap;gap:8px;}
+.day-check{display:flex;align-items:center;gap:6px;cursor:pointer;background:var(--surface2);padding:6px 10px;border-radius:8px;border:1px solid var(--border);transition:all .2s;}
+.day-check:has(input:checked){background:rgba(91,141,239,.2);border-color:var(--accent);}
+.day-check input{accent-color:var(--accent);width:15px;height:15px;}
+.day-check span{font-size:13px;font-weight:600;}
+.time-row{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+.modal-actions{display:flex;gap:10px;margin-top:20px;}
+.btn-cancel{
+  flex:1;padding:12px;background:var(--surface2);border:1px solid var(--border);
+  border-radius:10px;color:var(--text2);font-size:15px;font-weight:600;
+  font-family:inherit;cursor:pointer;transition:all .2s;
+}
+.btn-cancel:hover{border-color:var(--accent2);color:var(--accent2);}
+.btn-save{flex:1;}
+
+/* ── RESPONSIVE ── */
+@media(min-width:640px){
+  .modal-overlay{align-items:center;}
+  .modal{border-radius:20px;max-width:460px;}
+  .modal-handle{display:none;}
+  .bottom-nav{display:none;}
+  .page-wrap{padding-bottom:16px;}
+}
+@media(max-width:639px){
+  .topbar-nav{display:none;}
+  .topbar{padding:0 14px;}
+  .user-pill{display:none;}
+  .logout-btn{display:none;}
+  .bottom-nav{display:flex;}
+  .page{padding:16px 14px;}
+  .topbar-brand{font-size:18px;}
+  .lang-toggle{top:12px;right:14px;}
+  body.rtl .lang-toggle{right:auto;left:14px;}
+}
+
+/* ── REMINDERS ── */
+.reminder-card{
+  background:var(--surface);border:1px solid var(--border);
+  border-radius:var(--radius);padding:14px 16px;
+  display:flex;align-items:center;gap:12px;margin-bottom:8px;
+}
+.reminder-card .r-icon{font-size:20px;flex-shrink:0;}
+.reminder-card .r-info{flex:1;min-width:0;}
+.reminder-card .r-info h4{font-size:14px;font-weight:700;margin-bottom:2px;}
+.reminder-card .r-info p{font-size:12px;color:var(--text2);}
+.reminder-toggle{
+  position:relative;width:40px;height:22px;flex-shrink:0;
+}
+.reminder-toggle input{opacity:0;width:0;height:0;position:absolute;}
+.toggle-slider{
+  position:absolute;inset:0;background:var(--surface3);
+  border-radius:11px;cursor:pointer;transition:background .2s;
+}
+.toggle-slider:before{
+  content:'';position:absolute;left:3px;top:3px;
+  width:16px;height:16px;background:#fff;border-radius:50%;
+  transition:transform .2s;
+}
+.reminder-toggle input:checked+.toggle-slider{background:var(--accent);}
+.reminder-toggle input:checked+.toggle-slider:before{transform:translateX(18px);}
+
+/* In-app notification toast */
+.notif-toast{
+  position:fixed;top:72px;left:50%;transform:translateX(-50%) translateY(-20px);
+  background:var(--surface2);border:1px solid var(--accent);
+  border-radius:12px;padding:12px 18px;z-index:9999;
+  display:flex;align-items:center;gap:10px;
+  opacity:0;transition:all .3s;pointer-events:none;
+  max-width:90vw;box-shadow:0 8px 24px rgba(0,0,0,.4);
+  white-space:nowrap;
+}
+.notif-toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
+.notif-toast .n-icon{font-size:20px;}
+.notif-toast .n-text{font-size:13px;font-weight:600;}
+
+.notif-banner{
+  background:rgba(255,209,102,.1);border:1px solid rgba(255,209,102,.3);
+  border-radius:var(--radius);padding:14px 16px;margin-bottom:16px;
+  display:flex;align-items:flex-start;gap:12px;
+}
+.notif-banner .nb-icon{font-size:22px;flex-shrink:0;}
+.notif-banner .nb-text{font-size:13px;color:var(--accent4);font-weight:600;line-height:1.5;}
+
+::-webkit-scrollbar{width:5px;}
+::-webkit-scrollbar-track{background:transparent;}
+::-webkit-scrollbar-thumb{background:var(--border);border-radius:3px;}
+
+@media(min-width:640px){
+  .modal-overlay{align-items:center;}
+  .modal{border-radius:20px;max-width:460px;}
+  .modal-handle{display:none;}
+  .bottom-nav{display:none;}
+  .page-wrap{padding-bottom:16px;}
+}
+@media(max-width:639px){
+  :root{--bottom-h:70px;}
+  .topbar-nav{display:none;}
+  .topbar{padding:0 12px;height:52px;}
+  .user-pill{display:none;}
+  .logout-btn{font-size:11px;padding:5px 8px;}
+  .bottom-nav{display:flex;}
+  .page{padding:14px 12px;}
+  .topbar-brand{font-size:17px;}
+  .lang-toggle{top:10px;right:110px;}
+  body.rtl .lang-toggle{right:auto;left:110px;}
+  .page-header h2{font-size:20px;}
+  .ai-card{padding:14px 14px;}
+}
+</style>
+</head>
+<body>
+
+<!-- LANG TOGGLE -->
+<div class="lang-toggle">
+  <button class="lang-btn active" onclick="setLang('en')">EN</button>
+  <button class="lang-btn" onclick="setLang('he')">עב</button>
+</div>
+
+<!-- AUTH -->
+<div id="auth-screen">
+  <div class="auth-card">
+    <div class="auth-logo">
+      <div class="logo-icon">📚</div>
+      <h1>StudyFlow</h1>
+      <p id="auth-sub">Your smart study planner</p>
+    </div>
+    <div class="auth-tabs">
+      <div class="auth-tab active" id="tab-login" onclick="switchTab('login')" data-en="Sign In" data-he="כניסה">Sign In</div>
+      <div class="auth-tab" id="tab-register" onclick="switchTab('register')" data-en="Sign Up" data-he="הרשמה">Sign Up</div>
+    </div>
+    <div class="form-group">
+      <label id="lbl-user" data-en="USERNAME" data-he="שם משתמש">USERNAME</label>
+      <input type="text" id="auth-username" data-en-ph="Enter username" data-he-ph="הכנס שם משתמש" placeholder="Enter username" autocomplete="username" />
+    </div>
+    <div class="form-group">
+      <label id="lbl-pass" data-en="PASSWORD" data-he="סיסמה">PASSWORD</label>
+      <input type="password" id="auth-password" data-en-ph="Enter password" data-he-ph="הכנס סיסמה" placeholder="Enter password" autocomplete="current-password" />
+    </div>
+    <div class="form-group" id="auth-name-group" style="display:none">
+      <label id="lbl-name" data-en="DISPLAY NAME" data-he="שם מלא">DISPLAY NAME</label>
+      <input type="text" id="auth-fullname" data-en-ph="Your name" data-he-ph="השם שלך" placeholder="Your name" />
+    </div>
+    <button class="btn-primary" id="auth-btn" onclick="handleAuth()">Sign In</button>
+    <div class="auth-error" id="auth-error"></div>
+  </div>
+</div>
+
+<!-- APP -->
+<div id="app">
+  <div class="topbar">
+    <div class="topbar-brand">📚 StudyFlow</div>
+    <div class="topbar-nav">
+      <button class="nav-btn active" onclick="goPage('dashboard')" id="nav-dashboard" data-en="Weekly View" data-he="לוח שבועי">Weekly View</button>
+      <button class="nav-btn" onclick="goPage('activities')" id="nav-activities" data-en="Activities" data-he="פעילויות">Activities</button>
+      <button class="nav-btn" onclick="goPage('exams')" id="nav-exams" data-en="Exams" data-he="מבחנים">Exams</button>
+      <button class="nav-btn" onclick="goPage('reminders')" id="nav-reminders" data-en="Alerts" data-he="התראות">Alerts</button>
+    </div>
+    <div class="topbar-right">
+      <div class="user-pill" id="user-pill"></div>
+      <button class="logout-btn" id="logout-btn" onclick="logout()" data-en="Sign out" data-he="יציאה">Sign out</button>
+    </div>
+  </div>
+
+  <div class="page-wrap">
+    <!-- DASHBOARD -->
+    <div class="page active" id="page-dashboard">
+      <div class="page-header">
+        <h2 id="dash-title" data-en="My Week" data-he="השבוע שלי">My Week</h2>
+        <p id="dash-sub" data-en="Weekly view + AI study suggestions" data-he="לוח שבועי + המלצות לימוד מ-AI">Weekly view + AI study suggestions</p>
+      </div>
+      <div class="ai-card">
+        <div class="ai-card-header">
+          <span class="ai-badge">✨ AI</span>
+          <h3 id="ai-title" data-en="Smart Study Recommendations" data-he="המלצות לימוד חכמות">Smart Study Recommendations</h3>
+        </div>
+        <div id="ai-content">
+          <p class="ai-loading" id="ai-prompt-text" data-en="Click below to get personalized recommendations" data-he="לחץ למטה לקבל המלצות מותאמות אישית">Click below to get personalized recommendations</p>
+          <button class="btn-ai" id="ai-btn" onclick="getAISuggestions()" data-en="🤖 Analyze my schedule" data-he="🤖 נתח את הלוז שלי">🤖 Analyze my schedule</button>
+        </div>
+      </div>
+      <div class="week-scroll">
+        <div class="week-grid" id="week-grid"></div>
+      </div>
+    </div>
+
+    <!-- ACTIVITIES -->
+    <div class="page" id="page-activities">
+      <div class="page-header">
+        <h2 data-en="My Activities" data-he="הפעילויות שלי" id="act-page-title">My Activities</h2>
+        <p data-en="Everything that takes up your time" data-he="כל מה שתופס את הזמן שלך" id="act-page-sub">Everything that takes up your time</p>
+      </div>
+      <div class="section-header">
+        <h3 data-en="Recurring Activities" data-he="פעילויות קבועות" id="h-recurring">Recurring Activities</h3>
+        <button class="btn-add" onclick="openAddActivity('weekly')" id="btn-add-weekly" data-en="+ Add Recurring" data-he="+ הוסף קבועה">+ Add Recurring</button>
+      </div>
+      <div class="activity-list" id="weekly-list"></div>
+      <div class="section-header">
+        <h3 data-en="One-time Activities" data-he="פעילויות חד-פעמיות" id="h-once">One-time Activities</h3>
+        <button class="btn-add" onclick="openAddActivity('once')" id="btn-add-once" data-en="+ Add One-time" data-he="+ הוסף חד-פעמית">+ Add One-time</button>
+      </div>
+      <div class="activity-list" id="once-list"></div>
+    </div>
+
+    <!-- EXAMS -->
+    <div class="page" id="page-exams">
+      <div class="page-header">
+        <h2 data-en="Exams & Tests" data-he="מבחנים ומבדקים" id="exam-page-title">Exams & Tests</h2>
+        <p data-en="Track all upcoming tests" data-he="עקוב אחר כל המבחנים הקרובים" id="exam-page-sub">Track all upcoming tests</p>
+      </div>
+      <div class="section-header">
+        <h3 data-en="My Exams" data-he="המבחנים שלי" id="h-exams">My Exams</h3>
+        <button class="btn-add" onclick="openAddExam()" id="btn-add-exam" data-en="+ Add Exam" data-he="+ הוסף מבחן">+ Add Exam</button>
+      </div>
+      <div id="exam-list"></div>
+    </div>
+
+    <!-- REMINDERS -->
+    <div class="page" id="page-reminders">
+      <div class="page-header">
+        <h2 data-en="Alerts & Reminders" data-he="התראות ותזכורות">Alerts & Reminders</h2>
+        <p data-en="Get notified when it's time to study" data-he="קבל התראה כשהגיע הזמן ללמוד">Get notified when it's time to study</p>
+      </div>
+      <div id="reminders-banner"></div>
+      <div class="section-header">
+        <h3 data-en="Permission" data-he="הרשאה">Permission</h3>
+      </div>
+      <div class="reminder-card" style="margin-bottom:16px;">
+        <div class="r-icon">🔐</div>
+        <div class="r-info">
+          <h4 data-en="Browser Notifications" data-he="התראות דפדפן">Browser Notifications</h4>
+          <p id="perm-status">–</p>
+        </div>
+        <button class="btn-add" id="perm-btn" onclick="requestNotifPerm()" style="font-size:12px;padding:6px 12px;" data-en="Enable" data-he="אפשר">Enable</button>
+      </div>
+      <div class="section-header">
+        <h3 data-en="Study Reminders" data-he="תזכורות לימוד">Study Reminders</h3>
+      </div>
+      <div class="reminder-card">
+        <div class="r-icon">⏰</div>
+        <div class="r-info">
+          <h4 data-en="Remind me before study time" data-he="הזכר לי לפני זמן לימוד">Remind me before study time</h4>
+          <p data-en="Alert before a suggested study slot" data-he="התראה לפני חלון לימוד מוצע" style="font-size:12px;color:var(--text2);">Alert before a suggested study slot</p>
+        </div>
+        <label class="reminder-toggle"><input type="checkbox" id="toggle-study-remind" onchange="saveReminderSettings()"/><span class="toggle-slider"></span></label>
+      </div>
+      <div class="reminder-card" style="margin-bottom:16px;">
+        <div class="r-icon">🕐</div>
+        <div class="r-info">
+          <h4 data-en="Minutes before" data-he="דקות לפני">Minutes before</h4>
+          <p data-en="How early to get the reminder" data-he="כמה מוקדם לקבל תזכורת" style="font-size:12px;color:var(--text2);">How early to get the reminder</p>
+        </div>
+        <select id="remind-minutes" onchange="saveReminderSettings()" style="background:var(--surface2);border:1px solid var(--border);color:var(--text);border-radius:8px;padding:6px 10px;font-family:inherit;font-size:13px;outline:none;">
+          <option value="10">10</option>
+          <option value="15" selected>15</option>
+          <option value="20">20</option>
+          <option value="30">30</option>
+          <option value="45">45</option>
+          <option value="60">60</option>
+        </select>
+      </div>
+      <div class="section-header">
+        <h3 data-en="Exam Alerts" data-he="התראות מבחן">Exam Alerts</h3>
+      </div>
+      <div class="reminder-card">
+        <div class="r-icon">📣</div>
+        <div class="r-info">
+          <h4 data-en="Exam tomorrow alert" data-he="התראה למבחן מחר">Exam tomorrow alert</h4>
+          <p data-en="Get notified the evening before an exam" data-he="קבל התראה בערב לפני מבחן" style="font-size:12px;color:var(--text2);">Get notified the evening before an exam</p>
+        </div>
+        <label class="reminder-toggle"><input type="checkbox" id="toggle-exam-remind" onchange="saveReminderSettings()"/><span class="toggle-slider"></span></label>
+      </div>
+      <div class="reminder-card" style="margin-bottom:16px;">
+        <div class="r-icon">🌆</div>
+        <div class="r-info">
+          <h4 data-en="Evening alert time" data-he="שעת ההתראה בערב">Evening alert time</h4>
+          <p data-en="When to send the exam tomorrow notification" data-he="מתי לשלוח את ההתראה" style="font-size:12px;color:var(--text2);">When to send the exam tomorrow notification</p>
+        </div>
+        <input type="time" id="remind-evening-time" value="20:00" onchange="saveReminderSettings()" style="background:var(--surface2);border:1px solid var(--border);color:var(--text);border-radius:8px;padding:6px 10px;font-family:inherit;font-size:13px;outline:none;width:90px;" />
+      </div>
+      <div class="section-header">
+        <h3 data-en="Add Manual Reminder" data-he="הוסף תזכורת ידנית">Add Manual Reminder</h3>
+      </div>
+      <div class="reminder-card" style="flex-wrap:wrap;gap:8px;margin-bottom:16px;">
+        <div class="r-icon">✏️</div>
+        <div class="r-info">
+          <input type="text" id="manual-rem-text" placeholder="e.g. Study Math" style="background:var(--surface2);border:1px solid var(--border);color:var(--text);border-radius:8px;padding:8px 10px;font-family:inherit;font-size:13px;outline:none;width:100%;" />
+        </div>
+        <input type="datetime-local" id="manual-rem-time" style="background:var(--surface2);border:1px solid var(--border);color:var(--text);border-radius:8px;padding:8px 10px;font-family:inherit;font-size:13px;outline:none;flex:1;" />
+        <button class="btn-add" onclick="addManualReminder()" style="font-size:12px;padding:8px 14px;" data-en="+ Add" data-he="+ הוסף">+ Add</button>
+      </div>
+      <div class="section-header">
+        <h3 data-en="Scheduled" data-he="מתוזמן">Scheduled</h3>
+      </div>
+      <div id="scheduled-list"></div>
+    </div>
+  </div>
+
+<!-- TOAST -->
+<div class="notif-toast" id="notif-toast">
+  <span class="n-icon">🔔</span>
+  <span class="n-text" id="notif-text"></span>
+</div>
+
+  <!-- BOTTOM NAV -->
+  <nav class="bottom-nav">
+    <div class="bottom-nav-inner">
+      <button class="bnav-btn active" onclick="goPage('dashboard')" id="bnav-dashboard" data-en="Week" data-he="שבוע">
+        <span class="icon">📅</span><span class="label">Week</span>
+      </button>
+      <button class="bnav-btn" onclick="goPage('activities')" id="bnav-activities" data-en="Activities" data-he="פעילויות">
+        <span class="icon">🏃</span><span class="label">Activities</span>
+      </button>
+      <button class="bnav-btn" onclick="goPage('exams')" id="bnav-exams" data-en="Exams" data-he="מבחנים">
+        <span class="icon">🎯</span><span class="label">Exams</span>
+      </button>
+      <button class="bnav-btn" onclick="goPage('reminders')" id="bnav-reminders" data-en="Alerts" data-he="התראות">
+        <span class="icon">🔔</span><span class="label">Alerts</span>
+      </button>
+      <button class="bnav-btn" onclick="logout()" id="bnav-logout" data-en="Out" data-he="יציאה">
+        <span class="icon">🚪</span><span class="label">Out</span>
+      </button>
+    </div>
+  </nav>
+</div>
+
+<!-- ACTIVITY MODAL -->
+<div class="modal-overlay" id="activity-modal">
+  <div class="modal">
+    <div class="modal-handle"></div>
+    <h3 id="activity-modal-title">Add Activity</h3>
+    <div class="form-group">
+      <label id="lbl-act-name" data-en="ACTIVITY NAME" data-he="שם הפעילות">ACTIVITY NAME</label>
+      <input type="text" id="act-name" data-en-ph="e.g. Soccer practice" data-he-ph="למשל: אימון כדורגל" placeholder="e.g. Soccer practice" />
+    </div>
+    <div class="form-group">
+      <label id="lbl-act-icon" data-en="EMOJI ICON" data-he="אייקון">EMOJI ICON</label>
+      <input type="text" id="act-icon" placeholder="⚽ 🏊 🎸 📖" />
+    </div>
+    <div class="form-group" id="days-group">
+      <label id="lbl-days" data-en="DAYS OF WEEK" data-he="ימים בשבוע">DAYS OF WEEK</label>
+      <div class="days-checkboxes" id="days-checkboxes"></div>
+    </div>
+    <div class="form-group" id="once-date-group" style="display:none">
+      <label id="lbl-date" data-en="DATE" data-he="תאריך">DATE</label>
+      <input type="date" id="act-date" />
+    </div>
+    <div class="time-row">
+      <div class="form-group">
+        <label id="lbl-start" data-en="START TIME" data-he="התחלה">START TIME</label>
+        <input type="time" id="act-start" />
+      </div>
+      <div class="form-group">
+        <label id="lbl-end" data-en="END TIME" data-he="סיום">END TIME</label>
+        <input type="time" id="act-end" />
+      </div>
+    </div>
+    <div class="form-group">
+      <label id="lbl-note" data-en="NOTE (OPTIONAL)" data-he="הערה">NOTE (OPTIONAL)</label>
+      <input type="text" id="act-note" data-en-ph="e.g. +30 min travel home" data-he-ph="למשל: +30 דקות נסיעה" placeholder="e.g. +30 min travel home" />
+    </div>
+    <div class="modal-actions">
+      <button class="btn-cancel" id="btn-cancel-act" onclick="closeModal('activity-modal')" data-en="Cancel" data-he="ביטול">Cancel</button>
+      <button class="btn-primary btn-save" onclick="saveActivity()" id="btn-save-act" data-en="Save" data-he="שמור">Save</button>
+    </div>
+  </div>
+</div>
+
+<!-- EXAM MODAL -->
+<div class="modal-overlay" id="exam-modal">
+  <div class="modal">
+    <div class="modal-handle"></div>
+    <h3 id="exam-modal-title" data-en="Add Exam / Test" data-he="הוסף מבחן / מבדק">Add Exam / Test</h3>
+    <div class="form-group">
+      <label id="lbl-subject" data-en="SUBJECT" data-he="מקצוע">SUBJECT</label>
+      <input type="text" id="exam-subject" data-en-ph="e.g. Mathematics" data-he-ph="למשל: מתמטיקה" placeholder="e.g. Mathematics" />
+    </div>
+    <div class="form-group">
+      <label id="lbl-type" data-en="TYPE" data-he="סוג">TYPE</label>
+      <select id="exam-type"></select>
+    </div>
+    <div class="form-group">
+      <label id="lbl-exam-date" data-en="DATE" data-he="תאריך">DATE</label>
+      <input type="date" id="exam-date" />
+    </div>
+    <div class="form-group">
+      <label id="lbl-exam-time" data-en="TIME" data-he="שעה">TIME</label>
+      <input type="time" id="exam-time" />
+    </div>
+    <div class="form-group">
+      <label id="lbl-exam-notes" data-en="NOTES / MATERIAL" data-he="חומר / הערות">NOTES / MATERIAL</label>
+      <input type="text" id="exam-notes" data-en-ph="e.g. Chapters 1–5" data-he-ph="למשל: פרקים 1-5" placeholder="e.g. Chapters 1–5" />
+    </div>
+    <div class="modal-actions">
+      <button class="btn-cancel" onclick="closeModal('exam-modal')" id="btn-cancel-exam" data-en="Cancel" data-he="ביטול">Cancel</button>
+      <button class="btn-primary btn-save" onclick="saveExam()" id="btn-save-exam" data-en="Save" data-he="שמור">Save</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ─── LANG ───────────────────────────────────────────
+const DAYS = {
+  en: ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'],
+  he: ['ראשון','שני','שלישי','רביעי','חמישי','שישי','שבת']
+};
+const MONTHS = {
+  en: ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'],
+  he: ['ינו','פבר','מרץ','אפר','מאי','יוני','יולי','אוג','ספט','אוק','נוב','דצמ']
+};
+const EXAM_TYPES = {
+  en: ['Exam','Quiz','Final','Test','Assignment'],
+  he: ['מבחן','מבדק','בגרות','בחינה','הגשת עבודה']
+};
+const T = {
+  en: {
+    login:'Sign In', register:'Sign Up',
+    'auth-sub':'Your smart study planner',
+    'auth-btn-login':'Sign In','auth-btn-register':'Sign Up',
+    'activity-modal-weekly':'Add Recurring Activity',
+    'activity-modal-once':'Add One-time Activity',
+    weekly:'Recurring',once:'One-time',
+    'days-left-today':'Today!','days-left-tomorrow':'Tomorrow!',
+    'days-left-past':'Past','days-left-days':' days',
+    empty_weekly:'No recurring activities yet',
+    empty_once:'No one-time activities yet',
+    empty_exams:'No exams added yet',
+    'ai-default':'Click below to get personalized recommendations',
+    'ai-no-data':'Add activities and exams first to get recommendations!',
+    'ai-loading':'🤔 Analyzing your schedule...',
+    'ai-error':'❌ Connection error. Try again.',
+    'ai-retry':'Try again','ai-refresh':'🔄 Refresh suggestions',
+    'ai-btn':'🤖 Analyze my schedule',
+    week:'Week',
+  },
+  he: {
+    login:'כניסה',register:'הרשמה',
+    'auth-sub':'מתכנן הלימודים החכם שלך',
+    'auth-btn-login':'כניסה','auth-btn-register':'הרשמה',
+    'activity-modal-weekly':'הוסף פעילות קבועה',
+    'activity-modal-once':'הוסף פעילות חד-פעמית',
+    weekly:'קבועה',once:'חד-פעמית',
+    'days-left-today':'היום!','days-left-tomorrow':'מחר!',
+    'days-left-past':'עבר','days-left-days':' ימים',
+    empty_weekly:'אין פעילויות קבועות עדיין',
+    empty_once:'אין פעילויות חד-פעמיות',
+    empty_exams:'אין מבחנים רשומים עדיין',
+    'ai-default':'לחץ למטה לקבל המלצות מותאמות אישית',
+    'ai-no-data':'הוסף פעילויות ומבחנים קודם!',
+    'ai-loading':'🤔 מנתח את הלוז שלך...',
+    'ai-error':'❌ שגיאת חיבור. נסה שוב.',
+    'ai-retry':'נסה שוב','ai-refresh':'🔄 עדכן המלצות',
+    'ai-btn':'🤖 נתח את הלוז שלי',
+    week:'שבוע',
+  }
+};
+
+let lang = 'en';
+
+function setLang(l) {
+  lang = l;
+  document.querySelectorAll('.lang-btn').forEach(b => b.classList.toggle('active', b.textContent.toLowerCase().includes(l === 'en' ? 'en' : 'ע')));
+  document.documentElement.lang = l;
+  document.documentElement.dir = l === 'he' ? 'rtl' : 'ltr';
+  document.body.classList.toggle('rtl', l === 'he');
+
+  // Update all data-en / data-he text content
+  document.querySelectorAll('[data-en]').forEach(el => {
+    const val = el.getAttribute('data-'+l);
+    if(val) el.textContent = val;
+  });
+  // Placeholders
+  document.querySelectorAll('[data-en-ph]').forEach(el => {
+    const val = el.getAttribute('data-'+l+'-ph');
+    if(val) el.placeholder = val;
+  });
+  // Exam type select
+  const sel = document.getElementById('exam-type');
+  if(sel) { const cur=sel.value; sel.innerHTML = EXAM_TYPES[l].map(t=>`<option>${t}</option>`).join(''); }
+  // Auth button
+  document.getElementById('auth-btn').textContent = T[l][authMode === 'login' ? 'auth-btn-login' : 'auth-btn-register'];
+  // Days checkboxes
+  buildDaysCheckboxes();
+  // Re-render
+  renderAll();
+}
+
+// ─── STATE ──────────────────────────────────────────
+let currentUser = null;
+let authMode = 'login';
+let currentActivityType = 'weekly';
+
+function getStore(k){try{return JSON.parse(localStorage.getItem(k))||null;}catch{return null;}}
+function setStore(k,v){localStorage.setItem(k,JSON.stringify(v));}
+function getUserData(){return getStore('sf2_'+currentUser)||{activities:[],exams:[]};}
+function saveUserData(d){setStore('sf2_'+currentUser,d);}
+
+// ─── AUTH ────────────────────────────────────────────
+function switchTab(mode){
+  authMode=mode;
+  document.getElementById('tab-login').classList.toggle('active',mode==='login');
+  document.getElementById('tab-register').classList.toggle('active',mode==='register');
+  document.getElementById('auth-name-group').style.display=mode==='register'?'block':'none';
+  document.getElementById('auth-btn').textContent=T[lang][mode==='login'?'auth-btn-login':'auth-btn-register'];
+  document.getElementById('auth-error').textContent='';
+}
+
+function handleAuth(){
+  const username=document.getElementById('auth-username').value.trim();
+  const password=document.getElementById('auth-password').value;
+  const err=document.getElementById('auth-error');
+  if(!username||!password){err.textContent=lang==='he'?'נא למלא שם משתמש וסיסמה':'Please fill in all fields';return;}
+  const users=getStore('sf2_users')||{};
+  if(authMode==='register'){
+    if(users[username]){err.textContent=lang==='he'?'שם משתמש כבר קיים':'Username already exists';return;}
+    const fullname=document.getElementById('auth-fullname').value.trim()||username;
+    users[username]={password,fullname};
+    setStore('sf2_users',users);
+    currentUser=username;
+    document.getElementById('user-pill').textContent=(lang==='he'?'👋 שלום, ':'👋 Hi, ')+fullname+'!';
+  } else {
+    if(!users[username]||users[username].password!==password){
+      err.textContent=lang==='he'?'שם משתמש או סיסמה שגויים':'Wrong username or password';return;
+    }
+    currentUser=username;
+    document.getElementById('user-pill').textContent=(lang==='he'?'👋 שלום, ':'👋 Hi, ')+users[username].fullname+'!';
+  }
+  // Save session
+  setStore('sf2_session', username);
+  loginSuccess();
+}
+
+function loginSuccess(){
+  document.getElementById('auth-screen').style.display='none';
+  document.getElementById('app').style.display='flex';
+  resetAI();
+  renderAll();
+  loadReminderUI();
+  scheduleAllReminders();
+  checkExamTomorrow();
+}
+
+function logout(){
+  currentUser=null;
+  localStorage.removeItem('sf2_session');
+  document.getElementById('auth-screen').style.display='flex';
+  document.getElementById('app').style.display='none';
+  document.getElementById('auth-username').value='';
+  document.getElementById('auth-password').value='';
+  document.getElementById('auth-error').textContent='';
+  resetAI();
+}
+
+function resetAI(){
+  document.getElementById('ai-content').innerHTML=
+    `<p class="ai-loading">${T[lang]['ai-default']}</p>`+
+    `<button class="btn-ai" onclick="getAISuggestions()">${T[lang]['ai-btn']}</button>`;
+}
+
+// ─── NAVIGATION ─────────────────────────────────────
+function goPage(name){
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.nav-btn,.bnav-btn').forEach(b=>b.classList.remove('active'));
+  document.getElementById('page-'+name).classList.add('active');
+  document.getElementById('nav-'+name)?.classList.add('active');
+  document.getElementById('bnav-'+name)?.classList.add('active');
+  if(name==='dashboard') renderWeekGrid();
+  if(name==='reminders') { loadReminderUI(); }
+}
+
+// ─── RENDER ──────────────────────────────────────────
+function renderAll(){ renderWeekGrid(); renderActivities(); renderExams(); }
+
+function renderWeekGrid(){
+  const data=getUserData();
+  const today=new Date();
+  const todayDay=today.getDay();
+  const sunday=new Date(today); sunday.setDate(today.getDate()-todayDay);
+  const grid=document.getElementById('week-grid');
+  if(!grid)return;
+  grid.innerHTML='';
+  for(let i=0;i<7;i++){
+    const d=new Date(sunday); d.setDate(sunday.getDate()+i);
+    const isToday=d.toDateString()===today.toDateString();
+    const col=document.createElement('div'); col.className='day-col';
+    const dateStr=`${d.getDate()}/${d.getMonth()+1}`;
+    col.innerHTML=`<div class="day-header ${isToday?'today':''}">${DAYS[lang][i]}<br><small>${dateStr}</small></div><div class="day-body" id="day-body-${i}"></div>`;
+    grid.appendChild(col);
+  }
+  data.activities.forEach(act=>{
+    if(act.type==='weekly'){
+      (act.days||[]).forEach(di=>{
+        const body=document.getElementById('day-body-'+di);
+        if(body){const el=document.createElement('div');el.className='day-event event-busy';el.textContent=`${act.icon||'📌'} ${act.name}${act.start?' '+act.start:''}`;body.appendChild(el);}
+      });
+    } else if(act.type==='once'&&act.date){
+      const ad=new Date(act.date);const di=ad.getDay();
+      const as=new Date(ad);as.setDate(ad.getDate()-di);
+      if(as.toDateString()===sunday.toDateString()){
+        const body=document.getElementById('day-body-'+di);
+        if(body){const el=document.createElement('div');el.className='day-event event-busy';el.textContent=`${act.icon||'📌'} ${act.name}`;body.appendChild(el);}
+      }
+    }
+  });
+  data.exams.forEach(exam=>{
+    if(!exam.date)return;
+    const ed=new Date(exam.date);
+    const es=new Date(ed);es.setDate(ed.getDate()-ed.getDay());
+    if(es.toDateString()===sunday.toDateString()){
+      const body=document.getElementById('day-body-'+ed.getDay());
+      if(body){const el=document.createElement('div');el.className='day-event event-exam';el.textContent=`🎯 ${exam.subject}`;body.appendChild(el);}
+    }
+  });
+}
+
+function buildDaysCheckboxes(){
+  const c=document.getElementById('days-checkboxes');
+  if(!c)return;
+  const checked=Array.from(c.querySelectorAll('input:checked')).map(i=>i.value);
+  c.innerHTML=DAYS[lang].slice(0,6).map((d,i)=>
+    `<label class="day-check"><input type="checkbox" value="${i}" ${checked.includes(String(i))?'checked':''}/><span>${d}</span></label>`
+  ).join('');
+}
+
+function renderActivities(){
+  const data=getUserData();
+  const wl=document.getElementById('weekly-list');
+  const ol=document.getElementById('once-list');
+  if(!wl||!ol)return;
+  wl.innerHTML=''; ol.innerHTML='';
+  const weekly=data.activities.filter(a=>a.type==='weekly');
+  const once=data.activities.filter(a=>a.type==='once');
+  if(!weekly.length){ wl.innerHTML=`<div class="empty-state"><div class="big">🏃</div><p>${T[lang].empty_weekly}</p></div>`; }
+  else weekly.forEach(act=>{
+    const days=(act.days||[]).map(d=>DAYS[lang][d]).join(', ');
+    const idx=data.activities.indexOf(act);
+    wl.innerHTML+=`<div class="activity-card"><div class="activity-icon">${act.icon||'📌'}</div><div class="activity-info"><h4>${act.name}</h4><p>${days}${act.start?' · '+act.start:''}${act.end?'–'+act.end:''}${act.note?' · '+act.note:''}</p></div><span class="activity-badge weekly">${T[lang].weekly}</span><button class="delete-btn" onclick="deleteActivity(${idx})">✕</button></div>`;
+  });
+  if(!once.length){ ol.innerHTML=`<div class="empty-state"><div class="big">📅</div><p>${T[lang].empty_once}</p></div>`; }
+  else once.forEach(act=>{
+    const idx=data.activities.indexOf(act);
+    ol.innerHTML+=`<div class="activity-card"><div class="activity-icon">${act.icon||'📌'}</div><div class="activity-info"><h4>${act.name}</h4><p>${act.date||''}${act.start?' · '+act.start:''}${act.end?'–'+act.end:''}${act.note?' · '+act.note:''}</p></div><span class="activity-badge once">${T[lang].once}</span><button class="delete-btn" onclick="deleteActivity(${idx})">✕</button></div>`;
+  });
+}
+
+function openAddActivity(type){
+  currentActivityType=type;
+  document.getElementById('activity-modal-title').textContent=T[lang]['activity-modal-'+type];
+  document.getElementById('days-group').style.display=type==='weekly'?'block':'none';
+  document.getElementById('once-date-group').style.display=type==='once'?'block':'none';
+  buildDaysCheckboxes();
+  ['act-name','act-icon','act-start','act-end','act-note'].forEach(id=>document.getElementById(id).value='');
+  document.getElementById('activity-modal').classList.add('open');
+}
+
+function saveActivity(){
+  const name=document.getElementById('act-name').value.trim();
+  if(!name)return;
+  const data=getUserData();
+  const act={type:currentActivityType,name,icon:document.getElementById('act-icon').value.trim(),start:document.getElementById('act-start').value,end:document.getElementById('act-end').value,note:document.getElementById('act-note').value.trim()};
+  if(currentActivityType==='weekly') act.days=Array.from(document.querySelectorAll('.days-checkboxes input:checked')).map(c=>parseInt(c.value));
+  else act.date=document.getElementById('act-date').value;
+  data.activities.push(act);
+  saveUserData(data);
+  closeModal('activity-modal');
+  renderAll();
+}
+
+function deleteActivity(idx){
+  const data=getUserData(); data.activities.splice(idx,1); saveUserData(data); renderAll();
+}
+
+function renderExams(){
+  const data=getUserData();
+  const list=document.getElementById('exam-list');
+  if(!list)return;
+  list.innerHTML='';
+  const today=new Date(); today.setHours(0,0,0,0);
+  const sorted=[...data.exams].sort((a,b)=>new Date(a.date)-new Date(b.date));
+  if(!sorted.length){ list.innerHTML=`<div class="empty-state"><div class="big">🎯</div><p>${T[lang].empty_exams}</p></div>`; return; }
+  sorted.forEach(exam=>{
+    const idx=data.exams.indexOf(exam);
+    const ed=new Date(exam.date); ed.setHours(0,0,0,0);
+    const diff=Math.round((ed-today)/86400000);
+    let cls='ok',txt=diff+T[lang]['days-left-days'];
+    if(diff<0){txt=T[lang]['days-left-past'];cls='urgent';}
+    else if(diff===0){txt=T[lang]['days-left-today'];cls='urgent';}
+    else if(diff===1){txt=T[lang]['days-left-tomorrow'];cls='urgent';}
+    else if(diff<=3)cls='urgent';
+    else if(diff<=7)cls='soon';
+    list.innerHTML+=`<div class="exam-card"><div class="exam-date-box"><div class="day-num">${ed.getDate()}</div><div class="month">${MONTHS[lang][ed.getMonth()]}</div></div><div class="exam-info"><h4>${exam.subject} – ${exam.type}</h4><p>${exam.time||''}${exam.notes?' · '+exam.notes:''}</p></div><span class="days-left ${cls}">${txt}</span><button class="delete-btn" onclick="deleteExam(${idx})">✕</button></div>`;
+  });
+}
+
+function openAddExam(){
+  ['exam-subject','exam-time','exam-notes'].forEach(id=>document.getElementById(id).value='');
+  document.getElementById('exam-date').value='';
+  const sel=document.getElementById('exam-type');
+  sel.innerHTML=EXAM_TYPES[lang].map(t=>`<option>${t}</option>`).join('');
+  document.getElementById('exam-modal').classList.add('open');
+}
+
+function saveExam(){
+  const subject=document.getElementById('exam-subject').value.trim();
+  const date=document.getElementById('exam-date').value;
+  if(!subject||!date)return;
+  const data=getUserData();
+  data.exams.push({subject,type:document.getElementById('exam-type').value,date,time:document.getElementById('exam-time').value,notes:document.getElementById('exam-notes').value.trim()});
+  saveUserData(data);
+  closeModal('exam-modal');
+  renderExams();
+}
+
+function deleteExam(idx){
+  const data=getUserData(); data.exams.splice(idx,1); saveUserData(data); renderExams();
+}
+
+function closeModal(id){document.getElementById(id).classList.remove('open');}
+document.querySelectorAll('.modal-overlay').forEach(m=>{
+  m.addEventListener('click',e=>{if(e.target===m)m.classList.remove('open');});
+});
+
+// ─── AI ──────────────────────────────────────────────
+async function getAISuggestions(){
+  const data=getUserData();
+  const contentEl=document.getElementById('ai-content');
+  if(!data.activities.length&&!data.exams.length){
+    contentEl.innerHTML=`<p class="ai-loading">${T[lang]['ai-no-data']}</p><button class="btn-ai" onclick="getAISuggestions()">${T[lang]['ai-btn']}</button>`;
+    return;
+  }
+  contentEl.innerHTML=`<p class="ai-loading">${T[lang]['ai-loading']}</p>`;
+  const today=new Date();
+  const actsDesc=data.activities.map(a=>{
+    if(a.type==='weekly'){
+      const days=(a.days||[]).map(d=>DAYS['en'][d]).join(', ');
+      return `- ${a.name}: days ${days}, ${a.start||'?'}–${a.end||'?'}${a.note?' ('+a.note+')':''}`;
+    }
+    return `- ${a.name}: date ${a.date}, ${a.start||'?'}–${a.end||'?'}`;
+  }).join('\n');
+  const examsDesc=data.exams.map(e=>{
+    const diff=Math.round((new Date(e.date)-today)/86400000);
+    return `- ${e.subject} (${e.type}): ${e.date}, in ${diff} days. Material: ${e.notes||'not specified'}`;
+  }).join('\n');
+  const isHe=lang==='he';
+  const prompt=`You are a smart study planning assistant for a student.
+The student's schedule:
+Busy activities:
+${actsDesc||'none'}
+Upcoming exams:
+${examsDesc||'none'}
+Today: ${today.toDateString()}
+
+Give 3–4 specific, practical study recommendations:
+1. Best times to study for each exam (specific days/hours)
+2. How much time per subject
+3. Priority order by urgency
+4. One time-management tip
+
+${isHe?'Respond in Hebrew.':'Respond in English.'} Be concise. Start each recommendation on a new line with "•".`;
+  try{
+    const res=await fetch("https://api.anthropic.com/v1/messages",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({model:"claude-sonnet-4-20250514",max_tokens:1000,messages:[{role:"user",content:prompt}]})});
+    const result=await res.json();
+    const text=result.content?.[0]?.text||'No response.';
+    const lines=text.split('\n').filter(l=>l.trim());
+    contentEl.innerHTML=lines.map(line=>{
+      if(line.startsWith('•')||line.startsWith('-'))
+        return `<div class="ai-suggestion"><div class="ai-dot"></div><div><p>${line.replace(/^[•\-]\s*/,'')}</p></div></div>`;
+      return `<div style="font-size:12px;color:var(--text2);padding:4px 0">${line}</div>`;
+    }).join('')+`<button class="btn-ai" onclick="getAISuggestions()" style="margin-top:12px">${T[lang]['ai-refresh']}</button>`;
+  } catch{
+    contentEl.innerHTML=`<p class="ai-loading">${T[lang]['ai-error']}</p><button class="btn-ai" onclick="getAISuggestions()">${T[lang]['ai-retry']}</button>`;
+  }
+}
+
+// ─── REMINDERS ───────────────────────────────────────
+let reminderTimers = [];
+
+function getReminderSettings() {
+  return getStore('sf2_reminders_' + currentUser) || {
+    studyRemind: false, studyMins: 15,
+    examRemind: false, eveningTime: '20:00',
+    manualReminders: []
+  };
+}
+function saveReminderSettings() {
+  const s = {
+    studyRemind: document.getElementById('toggle-study-remind')?.checked || false,
+    studyMins: parseInt(document.getElementById('remind-minutes')?.value || 15),
+    examRemind: document.getElementById('toggle-exam-remind')?.checked || false,
+    eveningTime: document.getElementById('remind-evening-time')?.value || '20:00',
+    manualReminders: getReminderSettings().manualReminders
+  };
+  setStore('sf2_reminders_' + currentUser, s);
+  scheduleAllReminders();
+}
+
+function loadReminderUI() {
+  const s = getReminderSettings();
+  const tog1 = document.getElementById('toggle-study-remind');
+  const tog2 = document.getElementById('toggle-exam-remind');
+  const mins = document.getElementById('remind-minutes');
+  const eve = document.getElementById('remind-evening-time');
+  if(tog1) tog1.checked = s.studyRemind;
+  if(tog2) tog2.checked = s.examRemind;
+  if(mins) mins.value = s.studyMins;
+  if(eve) eve.value = s.eveningTime;
+  updatePermStatus();
+  renderScheduled();
+  checkExamTomorrow();
+}
+
+function updatePermStatus() {
+  const el = document.getElementById('perm-status');
+  const btn = document.getElementById('perm-btn');
+  if (!('Notification' in window)) {
+    if(el) el.textContent = lang==='he' ? 'הדפדפן לא תומך בהתראות' : 'Browser does not support notifications';
+    if(btn) btn.style.display='none';
+    return;
+  }
+  const p = Notification.permission;
+  if(el) el.textContent = p === 'granted' ? (lang==='he'?'✅ מופעל':'✅ Enabled') : p === 'denied' ? (lang==='he'?'❌ חסום בהגדרות':'❌ Blocked in settings') : (lang==='he'?'⚠️ לא הוגדר':'⚠️ Not set');
+  if(btn) btn.style.display = p === 'granted' ? 'none' : 'flex';
+}
+
+async function requestNotifPerm() {
+  if (!('Notification' in window)) return;
+  await Notification.requestPermission();
+  updatePermStatus();
+  scheduleAllReminders();
+}
+
+function showToast(text, icon='🔔') {
+  const t = document.getElementById('notif-toast');
+  document.getElementById('notif-text').textContent = text;
+  t.querySelector('.n-icon').textContent = icon;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 4000);
+}
+
+function sendNotification(title, body, icon='📚') {
+  showToast(title + (body ? ' – ' + body : ''));
+  if (Notification.permission === 'granted') {
+    try { new Notification(title, { body, icon: '📚' }); } catch(e) {}
+  }
+  // Beep using Web Audio
+  try {
+    const ctx = new (window.AudioContext || window.webkitAudioContext)();
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+    osc.connect(gain); gain.connect(ctx.destination);
+    osc.type = 'sine'; osc.frequency.value = 880;
+    gain.gain.setValueAtTime(0.3, ctx.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.6);
+    osc.start(ctx.currentTime); osc.stop(ctx.currentTime + 0.6);
+    setTimeout(() => {
+      const o2 = ctx.createOscillator(); const g2 = ctx.createGain();
+      o2.connect(g2); g2.connect(ctx.destination);
+      o2.type='sine'; o2.frequency.value=1100;
+      g2.gain.setValueAtTime(0.3, ctx.currentTime);
+      g2.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime+0.5);
+      o2.start(ctx.currentTime); o2.stop(ctx.currentTime+0.5);
+    }, 300);
+  } catch(e) {}
+}
+
+function scheduleAllReminders() {
+  // Clear existing
+  reminderTimers.forEach(clearTimeout);
+  reminderTimers = [];
+  if (!currentUser) return;
+  const s = getReminderSettings();
+  const now = new Date();
+
+  // Manual reminders
+  s.manualReminders.forEach(r => {
+    const t = new Date(r.datetime);
+    const delay = t - now;
+    if (delay > 0 && delay < 86400000 * 7) {
+      const id = setTimeout(() => sendNotification('📚 ' + r.text, lang==='he'?'הגיע הזמן ללמוד!':'Time to study!'), delay);
+      reminderTimers.push(id);
+    }
+  });
+
+  // Exam tomorrow check – schedule for evening time
+  if (s.examRemind) {
+    const [h, m] = (s.eveningTime || '20:00').split(':').map(Number);
+    const fireTime = new Date(now);
+    fireTime.setHours(h, m, 0, 0);
+    if (fireTime > now) {
+      const delay = fireTime - now;
+      const id = setTimeout(() => checkExamTomorrow(true), delay);
+      reminderTimers.push(id);
+    }
+  }
+}
+
+function checkExamTomorrow(sendAlert = false) {
+  if (!currentUser) return;
+  const s = getReminderSettings();
+  const data = getUserData();
+  const tomorrow = new Date(); tomorrow.setDate(tomorrow.getDate() + 1);
+  const tStr = tomorrow.toISOString().split('T')[0];
+  const exams = data.exams.filter(e => e.date === tStr);
+  const banner = document.getElementById('reminders-banner');
+  if (exams.length > 0) {
+    const names = exams.map(e => e.subject).join(', ');
+    if (banner) {
+      banner.innerHTML = `<div class="notif-banner"><div class="nb-icon">⚠️</div><div class="nb-text">${lang==='he'?'מבחן מחר: ':'Exam tomorrow: '}<strong>${names}</strong>${lang==='he'?' – האם למדת מספיק?':' – Are you ready?'}</div></div>`;
+    }
+    if (sendAlert && s.examRemind) {
+      sendNotification(lang==='he'?'⚠️ מבחן מחר!':'⚠️ Exam Tomorrow!', names, '🎯');
+    }
+  } else {
+    if (banner) banner.innerHTML = '';
+  }
+}
+
+function addManualReminder() {
+  const text = document.getElementById('manual-rem-text')?.value.trim();
+  const datetime = document.getElementById('manual-rem-time')?.value;
+  if (!text || !datetime) return;
+  const s = getReminderSettings();
+  s.manualReminders = s.manualReminders || [];
+  s.manualReminders.push({ text, datetime, id: Date.now() });
+  setStore('sf2_reminders_' + currentUser, s);
+  document.getElementById('manual-rem-text').value = '';
+  document.getElementById('manual-rem-time').value = '';
+  scheduleAllReminders();
+  renderScheduled();
+  showToast(lang==='he'?'תזכורת נוספה!':'Reminder added!', '✅');
+}
+
+function deleteManualReminder(id) {
+  const s = getReminderSettings();
+  s.manualReminders = (s.manualReminders || []).filter(r => r.id !== id);
+  setStore('sf2_reminders_' + currentUser, s);
+  scheduleAllReminders();
+  renderScheduled();
+}
+
+function renderScheduled() {
+  const list = document.getElementById('scheduled-list');
+  if (!list) return;
+  const s = getReminderSettings();
+  const reminders = s.manualReminders || [];
+  const now = new Date();
+  const future = reminders.filter(r => new Date(r.datetime) > now);
+  if (!future.length) {
+    list.innerHTML = `<div class="empty-state"><div class="big">🔕</div><p>${lang==='he'?'אין תזכורות מתוזמנות':'No reminders scheduled yet'}</p></div>`;
+    return;
+  }
+  list.innerHTML = future.map(r => {
+    const d = new Date(r.datetime);
+    const fmt = d.toLocaleDateString(lang==='he'?'he-IL':'en-US', {weekday:'short',month:'short',day:'numeric'}) + ' ' + d.toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'});
+    return `<div class="reminder-card"><div class="r-icon">⏰</div><div class="r-info"><h4>${r.text}</h4><p>${fmt}</p></div><button class="delete-btn" onclick="deleteManualReminder(${r.id})">✕</button></div>`;
+  }).join('');
+}
+
+// ─── INIT ────────────────────────────────────────────
+document.addEventListener('keydown',e=>{if(e.key==='Enter'&&document.getElementById('auth-screen').style.display!=='none')handleAuth();});
+buildDaysCheckboxes();
+
+// Register Service Worker
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.register('/sw.js').then(reg => {
+    window._swReg = reg;
+  }).catch(e => console.log('SW error', e));
+}
+
+// Auto-login if session exists
+const savedSession = getStore('sf2_session');
+if (savedSession) {
+  const users = getStore('sf2_users') || {};
+  if (users[savedSession]) {
+    currentUser = savedSession;
+    document.getElementById('user-pill').textContent = (lang==='he'?'👋 שלום, ':'👋 Hi, ') + users[savedSession].fullname + '!';
+    loginSuccess();
+  }
+}
+
+// Override scheduleAllReminders to use SW when available
+const _origSchedule = scheduleAllReminders;
+function scheduleViaSwOrTimer(title, body, delayMs) {
+  if (window._swReg?.active && delayMs > 0) {
+    window._swReg.active.postMessage({ type:'SCHEDULE_NOTIFICATION', title, body, delay: delayMs });
+  } else if (delayMs > 0) {
+    const id = setTimeout(() => sendNotification(title, body), delayMs);
+    reminderTimers.push(id);
+  }
+}
+
+// Patch checkExamTomorrow to also schedule via SW
+const _origCheckExam = checkExamTomorrow;
+function checkExamTomorrow(sendAlert = false) {
+  if (!currentUser) return;
+  const s = getReminderSettings();
+  const data = getUserData();
+  const tomorrow = new Date(); tomorrow.setDate(tomorrow.getDate() + 1);
+  const tStr = tomorrow.toISOString().split('T')[0];
+  const exams = data.exams.filter(e => e.date === tStr);
+  const banner = document.getElementById('reminders-banner');
+  if (exams.length > 0) {
+    const names = exams.map(e => e.subject).join(', ');
+    if (banner) {
+      banner.innerHTML = `<div class="notif-banner"><div class="nb-icon">⚠️</div><div class="nb-text">${lang==='he'?'מבחן מחר: ':'Exam tomorrow: '}<strong>${names}</strong>${lang==='he'?' – האם למדת מספיק?':' – Are you ready?'}</div></div>`;
+    }
+    if (sendAlert && s.examRemind) {
+      sendNotification(lang==='he'?'⚠️ מבחן מחר!':'⚠️ Exam Tomorrow!', names);
+    }
+  } else {
+    if (banner) banner.innerHTML = '';
+  }
+}
+</script>
+</body>
+</html>
