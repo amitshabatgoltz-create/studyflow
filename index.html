@@ -753,6 +753,12 @@ function handleAuth(){
     currentUser=username;
     document.getElementById('user-pill').textContent=(lang==='he'?'👋 שלום, ':'👋 Hi, ')+users[username].fullname+'!';
   }
+  // Save session
+  setStore('sf2_session', username);
+  loginSuccess();
+}
+
+function loginSuccess(){
   document.getElementById('auth-screen').style.display='none';
   document.getElementById('app').style.display='flex';
   resetAI();
@@ -764,6 +770,7 @@ function handleAuth(){
 
 function logout(){
   currentUser=null;
+  localStorage.removeItem('sf2_session');
   document.getElementById('auth-screen').style.display='flex';
   document.getElementById('app').style.display='none';
   document.getElementById('auth-username').value='';
@@ -1185,8 +1192,18 @@ buildDaysCheckboxes();
 if ('serviceWorker' in navigator) {
   navigator.serviceWorker.register('/sw.js').then(reg => {
     window._swReg = reg;
-    console.log('SW registered');
   }).catch(e => console.log('SW error', e));
+}
+
+// Auto-login if session exists
+const savedSession = getStore('sf2_session');
+if (savedSession) {
+  const users = getStore('sf2_users') || {};
+  if (users[savedSession]) {
+    currentUser = savedSession;
+    document.getElementById('user-pill').textContent = (lang==='he'?'👋 שלום, ':'👋 Hi, ') + users[savedSession].fullname + '!';
+    loginSuccess();
+  }
 }
 
 // Override scheduleAllReminders to use SW when available
