@@ -635,6 +635,15 @@ body:not(.rtl) .event-study{border-right:none;border-left:2px solid var(--accent
       <select id="exam-type"></select>
     </div>
     <div class="form-group">
+      <label data-en="IMPORTANCE" data-he="חשיבות">IMPORTANCE</label>
+      <div style="display:flex;gap:8px;margin-top:4px;" id="importance-btns">
+        <button type="button" onclick="setImportance('low')" id="imp-low" style="flex:1;padding:8px;border-radius:8px;border:2px solid var(--accent3);background:rgba(67,233,123,.15);color:var(--accent3);font-family:inherit;font-size:13px;font-weight:700;cursor:pointer;" data-en="🟢 Low" data-he="🟢 נמוך">🟢 Low</button>
+        <button type="button" onclick="setImportance('mid')" id="imp-mid" style="flex:1;padding:8px;border-radius:8px;border:2px solid var(--border);background:transparent;color:var(--text2);font-family:inherit;font-size:13px;font-weight:700;cursor:pointer;" data-en="🟡 Medium" data-he="🟡 בינוני">🟡 Medium</button>
+        <button type="button" onclick="setImportance('high')" id="imp-high" style="flex:1;padding:8px;border-radius:8px;border:2px solid var(--border);background:transparent;color:var(--text2);font-family:inherit;font-size:13px;font-weight:700;cursor:pointer;" data-en="🔴 High" data-he="🔴 גבוה">🔴 High</button>
+      </div>
+      <input type="hidden" id="exam-importance" value="mid" />
+    </div>
+    <div class="form-group">
       <label id="lbl-exam-date" data-en="DATE" data-he="תאריך">DATE</label>
       <input type="date" id="exam-date" />
     </div>
@@ -925,14 +934,101 @@ function deleteActivity(idx){
   const data=getUserData(); data.activities.splice(idx,1); saveUserData(data); renderAll();
 }
 
+function setImportance(level) {
+  document.getElementById('exam-importance').value = level;
+  const colors = { low: 'var(--accent3)', mid: 'var(--accent4)', high: 'var(--accent2)' };
+  const ids = ['low','mid','high'];
+  ids.forEach(id => {
+    const btn = document.getElementById('imp-'+id);
+    if(id === level) {
+      btn.style.borderColor = colors[id];
+      btn.style.background = colors[id].replace('var(','rgba(').replace(')',', .15)');
+      btn.style.color = colors[id];
+    } else {
+      btn.style.borderColor = 'var(--border)';
+      btn.style.background = 'transparent';
+      btn.style.color = 'var(--text2)';
+    }
+  });
+}
+
+// ─── GRADE & STUDY HOURS ─────────────────────────────
+const GRADE_HOURS = {
+  2:1, 3:1.5, 4:1.5, 5:2, 6:2, 7:2.5,
+  8:3, 9:3, 10:3, 11:3.5, 12:3.5
+};
+const HEAVY_SUBJECTS = ['מתמטיקה','math','פיזיקה','physics','כימיה','chemistry','אנגלית','english','ביולוגיה','biology'];
+
+function getGrade(){ return parseInt(getStore('sf2_grade_'+currentUser)||7); }
+function setGrade(g){ setStore('sf2_grade_'+currentUser, g); }
+
+function getTargetHours(exam){
+  const grade = getGrade();
+  let base = GRADE_HOURS[grade] || 2.5;
+
+  // Type modifier
+  const type = exam.type||'';
+  if(type==='בוחן'||type==='Quiz') base *= 0.6;
+  else if(type==='בגרות'||type==='Final') base *= 1.6;
+
+  // Importance modifier
+  const imp = exam.importance||'mid';
+  if(imp==='low') base *= 0.7;
+  else if(imp==='high') base *= 1.4;
+
+  // Heavy subject
+  const subjectLower = (exam.subject||'').toLowerCase();
+  const isHeavy = HEAVY_SUBJECTS.some(s => subjectLower.includes(s.toLowerCase()));
+  if(isHeavy) base += 0.5;
+
+  return Math.round(base * 2) / 2; // round to nearest 0.5
+}
+
+function getStudyHours(examId){
+  const d = getUserData();
+  return (d.studyLog && d.studyLog[examId]) || 0;
+}
+
+function addStudyHours(examId, hours){
+  const d = getUserData();
+  if(!d.studyLog) d.studyLog = {};
+  d.studyLog[examId] = (d.studyLog[examId]||0) + hours;
+  saveUserData(d);
+  renderExams();
+  showToast((lang==='he'?'נוספו ':'Added ')+hours+(lang==='he'?' שעות לימוד 📖':' study hours 📖'));
+}
+
+function resetStudy(examId){
+  const d=getUserData();
+  if(!d.studyLog) d.studyLog={};
+  d.studyLog[examId]=0;
+  saveUserData(d);
+  renderExams();
+}
+
 function renderExams(){
   const data=getUserData();
   const list=document.getElementById('exam-list');
   if(!list)return;
   list.innerHTML='';
+
+  // Grade selector at top
+  const grade = getGrade();
+  list.innerHTML = `<div style="background:var(--surface2);border:1px solid var(--border);border-radius:12px;padding:12px 16px;margin-bottom:16px;display:flex;align-items:center;gap:12px;">
+    <span style="font-size:20px">🎓</span>
+    <div style="flex:1">
+      <div style="font-size:13px;font-weight:700;margin-bottom:4px">${lang==='he'?'הכיתה שלי':'My Grade'}</div>
+      <select onchange="setGrade(this.value);renderExams()" style="background:var(--surface);border:1px solid var(--border);color:var(--text);border-radius:8px;padding:5px 10px;font-family:inherit;font-size:13px;outline:none;">
+        ${[2,3,4,5,6,7,8,9,10,11,12].map(g=>`<option value="${g}" ${g==grade?'selected':''}>${lang==='he'?'כיתה ':''} ${g} ${lang==='he'?'':'Grade'}</option>`).join('')}
+      </select>
+    </div>
+    <div style="font-size:12px;color:var(--text2)">${lang==='he'?'זמן מומלץ':'Recommended'}<br><strong style="color:var(--accent)">${GRADE_HOURS[grade]||2.5}${lang==='he'?' שעות':' hrs'}</strong></div>
+  </div>`;
+
   const today=new Date(); today.setHours(0,0,0,0);
   const sorted=[...data.exams].sort((a,b)=>new Date(a.date)-new Date(b.date));
-  if(!sorted.length){ list.innerHTML=`<div class="empty-state"><div class="big">🎯</div><p>${T[lang].empty_exams}</p></div>`; return; }
+  if(!sorted.length){ list.innerHTML+=`<div class="empty-state"><div class="big">🎯</div><p>${T[lang].empty_exams}</p></div>`; return; }
+
   sorted.forEach(exam=>{
     const idx=data.exams.indexOf(exam);
     const ed=new Date(exam.date); ed.setHours(0,0,0,0);
@@ -943,7 +1039,43 @@ function renderExams(){
     else if(diff===1){txt=T[lang]['days-left-tomorrow'];cls='urgent';}
     else if(diff<=3)cls='urgent';
     else if(diff<=7)cls='soon';
-    list.innerHTML+=`<div class="exam-card"><div class="exam-date-box"><div class="day-num">${ed.getDate()}</div><div class="month">${MONTHS[lang][ed.getMonth()]}</div></div><div class="exam-info"><h4>${exam.subject} – ${exam.type}</h4><p>${exam.time||''}${exam.notes?' · '+exam.notes:''}</p></div><span class="days-left ${cls}">${txt}</span><button class="delete-btn" onclick="deleteExam(${idx})">✕</button></div>`;
+
+    const examId = exam.date+'_'+exam.subject;
+    const studied = getStudyHours(examId);
+    const target = getTargetHours(exam);
+    const pct = Math.min(100, Math.round((studied/target)*100));
+    const barColor = pct>=100?'var(--accent3)':pct>=50?'var(--accent4)':'var(--accent2)';
+    const notEnough = diff<=0 && studied < target;
+    const impIcon = exam.importance==='low'?'🟢':exam.importance==='high'?'🔴':'🟡';
+    const impColors = {low:'var(--accent3)',mid:'var(--accent4)',high:'var(--accent2)'};
+    const impColor = impColors[exam.importance||'mid'];
+
+    list.innerHTML+=`
+    <div class="exam-card" style="flex-direction:column;align-items:stretch;gap:10px;${notEnough?'border-color:var(--accent2)':''}">
+      <div style="display:flex;align-items:center;gap:14px;">
+        <div class="exam-date-box"><div class="day-num">${ed.getDate()}</div><div class="month">${MONTHS[lang][ed.getMonth()]}</div></div>
+        <div class="exam-info">
+          <h4>${exam.subject} – ${exam.type} <span style="font-size:11px;padding:2px 7px;border-radius:10px;background:${impColor}22;color:${impColor};font-weight:700;">${impIcon} ${lang==='he'?{low:'נמוך',mid:'בינוני',high:'גבוה'}[exam.importance||'mid']:{low:'Low',mid:'Medium',high:'High'}[exam.importance||'mid']}</span></h4>
+          <p>${exam.time||''}${exam.notes?' · '+exam.notes:''}</p>
+          ${notEnough?`<p style="color:var(--accent2);font-size:11px;font-weight:700">⚠️ ${lang==='he'?'לא למדת מספיק!':'Not enough study!'}</p>`:''}
+        </div>
+        <span class="days-left ${cls}">${txt}</span>
+        <button class="delete-btn" onclick="deleteExam(${idx})">✕</button>
+      </div>
+      <div>
+        <div style="display:flex;justify-content:space-between;font-size:12px;color:var(--text2);margin-bottom:5px;">
+          <span>📖 ${lang==='he'?'למדתי':'Studied'}: <strong style="color:var(--text)">${studied}/${target} ${lang==='he'?'שעות':'hrs'}</strong></span>
+          <span style="color:${barColor};font-weight:700">${pct}%</span>
+        </div>
+        <div style="height:6px;background:var(--surface2);border-radius:3px;overflow:hidden;margin-bottom:8px;">
+          <div style="height:100%;width:${pct}%;background:${barColor};border-radius:3px;transition:width .3s;"></div>
+        </div>
+        <div style="display:flex;gap:6px;flex-wrap:wrap;">
+          ${[0.5,1,1.5,2].map(h=>`<button onclick="addStudyHours('${examId}',${h})" style="padding:5px 10px;border-radius:8px;border:1px solid var(--border);background:var(--surface2);color:var(--text);font-size:12px;font-weight:700;font-family:inherit;cursor:pointer;">+${h}h</button>`).join('')}
+          ${studied>0?`<button onclick="resetStudy('${examId}')" style="padding:5px 10px;border-radius:8px;border:1px solid var(--border);background:transparent;color:var(--text3);font-size:11px;font-family:inherit;cursor:pointer;">${lang==='he'?'איפוס':'Reset'}</button>`:''}
+        </div>
+      </div>
+    </div>`;
   });
 }
 
@@ -952,6 +1084,7 @@ function openAddExam(){
   document.getElementById('exam-date').value='';
   const sel=document.getElementById('exam-type');
   sel.innerHTML=EXAM_TYPES[lang].map(t=>`<option>${t}</option>`).join('');
+  setImportance('mid');
   document.getElementById('exam-modal').classList.add('open');
 }
 
@@ -960,7 +1093,14 @@ function saveExam(){
   const date=document.getElementById('exam-date').value;
   if(!subject||!date)return;
   const data=getUserData();
-  data.exams.push({subject,type:document.getElementById('exam-type').value,date,time:document.getElementById('exam-time').value,notes:document.getElementById('exam-notes').value.trim()});
+  data.exams.push({
+    subject,
+    type:document.getElementById('exam-type').value,
+    importance:document.getElementById('exam-importance').value,
+    date,
+    time:document.getElementById('exam-time').value,
+    notes:document.getElementById('exam-notes').value.trim()
+  });
   saveUserData(data);
   closeModal('exam-modal');
   renderExams();
@@ -1119,15 +1259,15 @@ function sendNotification(title, body, icon='📚') {
 }
 
 function scheduleAllReminders() {
-  // Clear existing
   reminderTimers.forEach(clearTimeout);
   reminderTimers = [];
   if (!currentUser) return;
   const s = getReminderSettings();
   const now = new Date();
+  const data = getUserData();
 
   // Manual reminders
-  s.manualReminders.forEach(r => {
+  (s.manualReminders||[]).forEach(r => {
     const t = new Date(r.datetime);
     const delay = t - now;
     if (delay > 0 && delay < 86400000 * 7) {
@@ -1136,17 +1276,88 @@ function scheduleAllReminders() {
     }
   });
 
-  // Exam tomorrow check – schedule for evening time
+  // 15:00 daily study reminder
+  if (s.examRemind) {
+    const fire15 = new Date(now); fire15.setHours(15,0,0,0);
+    if (fire15 <= now) fire15.setDate(fire15.getDate()+1);
+    const snoozed15 = getStore('sf2_snooze_15_'+currentUser);
+    const today0 = new Date(now); today0.setHours(0,0,0,0);
+    if (!snoozed15 || new Date(snoozed15) < today0) {
+      const d15 = fire15 - now;
+      const id = setTimeout(() => {
+        const upcoming = data.exams.filter(e => {
+          const diff = Math.round((new Date(e.date) - now) / 86400000);
+          return diff >= 0 && diff <= 7;
+        });
+        if (upcoming.length) {
+          sendNotification(
+            lang==='he'?'📖 הגיע הזמן ללמוד!':'📖 Time to study!',
+            upcoming.map(e=>e.subject).join(', ')
+          );
+          showStudyPrompt(upcoming[0]);
+        }
+      }, d15);
+      reminderTimers.push(id);
+    }
+  }
+
+  // 8:00 morning alert – not enough study
+  const fire8 = new Date(now); fire8.setHours(8,0,0,0);
+  if (fire8 <= now) fire8.setDate(fire8.getDate()+1);
+  const d8 = fire8 - now;
+  const id8 = setTimeout(() => {
+    const ud = getUserData();
+    ud.exams.forEach(exam => {
+      const ed = new Date(exam.date); ed.setHours(0,0,0,0);
+      const diff = Math.round((ed - new Date()) / 86400000);
+      if (diff === 0) {
+        const examId = exam.date+'_'+exam.subject;
+        const studied = getStudyHours(examId);
+        const target = getTargetHours(exam);
+        if (studied < target) {
+          sendNotification(
+            lang==='he'?'⚠️ מבחן היום ולא למדת מספיק!':'⚠️ Exam today – not enough study!',
+            `${exam.subject}: ${studied}/${target} ${lang==='he'?'שעות':'hrs'}`
+          );
+        }
+      }
+    });
+  }, d8);
+  reminderTimers.push(id8);
+
+  // Exam tomorrow evening alert
   if (s.examRemind) {
     const [h, m] = (s.eveningTime || '20:00').split(':').map(Number);
-    const fireTime = new Date(now);
-    fireTime.setHours(h, m, 0, 0);
+    const fireTime = new Date(now); fireTime.setHours(h, m, 0, 0);
     if (fireTime > now) {
       const delay = fireTime - now;
       const id = setTimeout(() => checkExamTomorrow(true), delay);
       reminderTimers.push(id);
     }
   }
+}
+
+function showStudyPrompt(exam) {
+  // Show toast with "Not today" option
+  const toast = document.getElementById('notif-toast');
+  document.getElementById('notif-text').textContent = (lang==='he'?'זמן ללמוד: ':'Study time: ') + exam.subject;
+  toast.querySelector('.n-icon').textContent = '📖';
+  // Add snooze button
+  let snoozeBtn = document.getElementById('snooze-btn');
+  if (!snoozeBtn) {
+    snoozeBtn = document.createElement('button');
+    snoozeBtn.id = 'snooze-btn';
+    snoozeBtn.style.cssText = 'background:var(--surface3);border:1px solid var(--border);color:var(--text);border-radius:8px;padding:4px 10px;font-size:11px;font-family:inherit;cursor:pointer;margin-right:8px;';
+    toast.appendChild(snoozeBtn);
+  }
+  snoozeBtn.textContent = lang==='he'?'לא היום':'Not today';
+  snoozeBtn.onclick = () => {
+    setStore('sf2_snooze_15_'+currentUser, new Date().toISOString());
+    toast.classList.remove('show');
+    showToast(lang==='he'?'בסדר, נזכיר מחר 👍':'OK, reminder postponed 👍', '💤');
+  };
+  toast.classList.add('show');
+  setTimeout(() => toast.classList.remove('show'), 8000);
 }
 
 function checkExamTomorrow(sendAlert = false) {
