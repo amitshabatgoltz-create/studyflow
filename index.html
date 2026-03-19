@@ -58,12 +58,10 @@ body.rtl .lang-toggle{right:auto;left:16px;}
 #splash{
   position:fixed;inset:0;background:#0b0d12;
   display:flex;flex-direction:column;align-items:center;justify-content:center;
-  z-index:9999;transition:opacity .4s;
+  z-index:9999;
 }
-#splash.hide{opacity:0;pointer-events:none;}
-#splash .s-icon{font-size:64px;margin-bottom:16px;animation:spulse 1s infinite;}
+#splash .s-icon{font-size:64px;margin-bottom:16px;}
 #splash h2{font-size:24px;font-weight:900;color:#5b8def;letter-spacing:-0.5px;}
-@keyframes spulse{0%,100%{transform:scale(1);}50%{transform:scale(1.08);}}
 
 /* ── AUTH ── */
 #auth-screen{
@@ -1586,7 +1584,7 @@ if ('serviceWorker' in navigator) {
   }).catch(e => console.log('SW error', e));
 }
 
-// Auto-login if session exists - run immediately before splash hides
+// Auto-login if session exists
 const savedSession = getStore('sf2_session');
 if (savedSession) {
   const users = getStore('sf2_users') || {};
@@ -1600,11 +1598,13 @@ if (savedSession) {
   }
 }
 
-// Hide splash after content is ready
-setTimeout(() => {
-  const splash = document.getElementById('splash');
-  if(splash){ splash.classList.add('hide'); setTimeout(()=>splash.style.display='none', 400); }
-}, 400);
+// Hide splash - wait for next paint so app is visible first
+const splash = document.getElementById('splash');
+requestAnimationFrame(() => requestAnimationFrame(() => {
+  splash.style.transition = 'opacity 0.3s';
+  splash.style.opacity = '0';
+  setTimeout(() => splash.style.display = 'none', 300);
+}));
 
 // Override scheduleAllReminders to use SW when available
 const _origSchedule = scheduleAllReminders;
@@ -1640,10 +1640,8 @@ function checkExamTomorrow(sendAlert = false) {
   }
 }
 
-// Register Service Worker
-if ('serviceWorker' in navigator) {
-  navigator.serviceWorker.register('/studyflow/sw.js').catch(()=>{});
-}
+// Service Worker disabled - not needed for basic functionality
+
 </script>
 </body>
 </html>
