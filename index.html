@@ -121,23 +121,22 @@ body.rtl .lang-toggle{right:auto;left:16px;}
 /* Bottom nav – mobile only */
 .bottom-nav{
   display:none;position:fixed;bottom:0;left:0;right:0;
-  height:var(--bottom-h);background:var(--surface);
-  border-top:1px solid var(--border);
-  padding:0 4px;padding-bottom:env(safe-area-inset-bottom);
+  height:80px;background:var(--surface);
+  border-top:2px solid var(--border);
+  padding-bottom:env(safe-area-inset-bottom);
   z-index:100;
 }
-.bottom-nav-inner{display:flex;height:100%;align-items:center;}
+.bottom-nav-inner{display:flex;height:100%;align-items:stretch;width:100%;}
 .bnav-btn{
   flex:1;display:flex;flex-direction:column;align-items:center;
-  justify-content:center;gap:3px;border:none;background:transparent;
+  justify-content:center;gap:5px;border:none;background:transparent;
   color:var(--text3);cursor:pointer;font-family:inherit;
-  padding:4px 2px;border-radius:10px;transition:all .2s;
-  font-size:11px;font-weight:700;white-space:nowrap;
+  padding:10px 4px;transition:all .2s;
 }
-.bnav-btn .icon{font-size:28px;transition:transform .2s;line-height:1;}
-.bnav-btn .label{font-size:11px;}
-.bnav-btn.active{color:var(--accent);}
-.bnav-btn.active .icon{transform:scale(1.1);}
+.bnav-btn .icon{font-size:30px;line-height:1;transition:transform .2s;}
+.bnav-btn .label{font-size:12px;font-weight:700;letter-spacing:.2px;}
+.bnav-btn.active{color:var(--accent);background:rgba(91,141,239,.1);}
+.bnav-btn.active .icon{transform:scale(1.15);}
 
 /* ── PAGES ── */
 .page-wrap{flex:1;overflow-y:auto;padding-bottom:calc(var(--bottom-h) + 16px);}
@@ -349,13 +348,14 @@ body:not(.rtl) .event-study{border-right:none;border-left:2px solid var(--accent
   .page-wrap{padding-bottom:16px;}
 }
 @media(max-width:639px){
-  :root{--bottom-h:70px;}
+  :root{--bottom-h:80px;}
   .topbar-nav{display:none;}
   .topbar{padding:0 12px;height:52px;}
   .user-pill{display:none;}
   .logout-btn{font-size:11px;padding:5px 8px;}
   .bottom-nav{display:flex;}
   .page{padding:14px 12px;}
+  .page-wrap{padding-bottom:96px;}
   .topbar-brand{font-size:17px;}
   .lang-toggle{top:10px;right:110px;}
   body.rtl .lang-toggle{right:auto;left:110px;}
@@ -560,20 +560,20 @@ body:not(.rtl) .event-study{border-right:none;border-left:2px solid var(--accent
   <!-- BOTTOM NAV -->
   <nav class="bottom-nav">
     <div class="bottom-nav-inner">
-      <button class="bnav-btn active" onclick="goPage('dashboard')" id="bnav-dashboard" data-en="Week" data-he="שבוע">
-        <span class="icon">📅</span><span class="label">Week</span>
+      <button class="bnav-btn active" onclick="goPage('dashboard')" id="bnav-dashboard">
+        <span class="icon">📅</span>
       </button>
-      <button class="bnav-btn" onclick="goPage('activities')" id="bnav-activities" data-en="Activities" data-he="פעילויות">
-        <span class="icon">🏃</span><span class="label">Activities</span>
+      <button class="bnav-btn" onclick="goPage('activities')" id="bnav-activities">
+        <span class="icon">🏃</span>
       </button>
-      <button class="bnav-btn" onclick="goPage('exams')" id="bnav-exams" data-en="Exams" data-he="מבחנים">
-        <span class="icon">🎯</span><span class="label">Exams</span>
+      <button class="bnav-btn" onclick="goPage('exams')" id="bnav-exams">
+        <span class="icon">🎯</span>
       </button>
-      <button class="bnav-btn" onclick="goPage('reminders')" id="bnav-reminders" data-en="Alerts" data-he="התראות">
-        <span class="icon">🔔</span><span class="label">Alerts</span>
+      <button class="bnav-btn" onclick="goPage('reminders')" id="bnav-reminders">
+        <span class="icon">🔔</span>
       </button>
-      <button class="bnav-btn" onclick="logout()" id="bnav-logout" data-en="Out" data-he="יציאה">
-        <span class="icon">🚪</span><span class="label">Out</span>
+      <button class="bnav-btn" onclick="logout()" id="bnav-logout">
+        <span class="icon">🚪</span>
       </button>
     </div>
   </nav>
