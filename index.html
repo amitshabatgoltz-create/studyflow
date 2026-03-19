@@ -375,18 +375,15 @@ body:not(.rtl) .event-study{border-right:none;border-left:2px solid var(--accent
 }
 @media(max-width:639px){
   :root{--bottom-h:80px;}
-  .topbar-nav{display:none;}
-  .topbar{padding:0 12px;height:52px;}
-  .user-pill{display:none;}
-  .logout-btn{font-size:11px;padding:5px 8px;}
+  .topbar{display:none;}
   .bottom-nav{display:flex;}
   .page{padding:14px 12px;}
-  .page-wrap{padding-bottom:96px;}
-  .topbar-brand{font-size:17px;}
-  .lang-toggle{top:10px;right:110px;}
-  body.rtl .lang-toggle{right:auto;left:110px;}
+  .page-wrap{padding-bottom:96px;padding-top:0;}
+  .lang-toggle{top:10px;right:16px;}
+  body.rtl .lang-toggle{right:auto;left:16px;}
   .page-header h2{font-size:20px;}
   .ai-card{padding:14px 14px;}
+  #app{padding-top:0;}
 }
 </style>
 </head>
@@ -1577,13 +1574,6 @@ function closeGreeting() {
 document.addEventListener('keydown',e=>{if(e.key==='Enter'&&document.getElementById('auth-screen').style.display!=='none')handleAuth();});
 buildDaysCheckboxes();
 
-// Register Service Worker
-if ('serviceWorker' in navigator) {
-  navigator.serviceWorker.register('/sw.js').then(reg => {
-    window._swReg = reg;
-  }).catch(e => console.log('SW error', e));
-}
-
 // Auto-login if session exists
 const savedSession = getStore('sf2_session');
 if (savedSession) {
@@ -1598,13 +1588,13 @@ if (savedSession) {
   }
 }
 
-// Hide splash - wait for next paint so app is visible first
+// Hide splash after content rendered
 const splash = document.getElementById('splash');
-requestAnimationFrame(() => requestAnimationFrame(() => {
-  splash.style.transition = 'opacity 0.3s';
+setTimeout(() => {
+  splash.style.transition = 'opacity 0.25s';
   splash.style.opacity = '0';
-  setTimeout(() => splash.style.display = 'none', 300);
-}));
+  setTimeout(() => splash.style.display = 'none', 250);
+}, 350);
 
 // Override scheduleAllReminders to use SW when available
 const _origSchedule = scheduleAllReminders;
