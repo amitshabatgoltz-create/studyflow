@@ -957,7 +957,10 @@ const GRADE_HOURS = {
   2:1, 3:1.5, 4:1.5, 5:2, 6:2, 7:2.5,
   8:3, 9:3, 10:3, 11:3.5, 12:3.5
 };
-const HEAVY_SUBJECTS = ['מתמטיקה','math','פיזיקה','physics','כימיה','chemistry','אנגלית','english','ביולוגיה','biology'];
+const GRADE_NAMES = {
+  2:'ב', 3:'ג', 4:'ד', 5:'ה', 6:'ו', 7:'ז',
+  8:'ח', 9:'ט', 10:'י', 11:'יא', 12:'יב'
+};
 
 function getGrade(){ return parseInt(getStore('sf2_grade_'+currentUser)||7); }
 function setGrade(g){ setStore('sf2_grade_'+currentUser, g); }
@@ -1019,7 +1022,7 @@ function renderExams(){
     <div style="flex:1">
       <div style="font-size:13px;font-weight:700;margin-bottom:4px">${lang==='he'?'הכיתה שלי':'My Grade'}</div>
       <select onchange="setGrade(this.value);renderExams()" style="background:var(--surface);border:1px solid var(--border);color:var(--text);border-radius:8px;padding:5px 10px;font-family:inherit;font-size:13px;outline:none;">
-        ${[2,3,4,5,6,7,8,9,10,11,12].map(g=>`<option value="${g}" ${g==grade?'selected':''}>${lang==='he'?'כיתה ':''} ${g} ${lang==='he'?'':'Grade'}</option>`).join('')}
+        ${[2,3,4,5,6,7,8,9,10,11,12].map(g=>`<option value="${g}" ${g==grade?'selected':''}>${lang==='he'?'כיתה '+GRADE_NAMES[g]:'Grade '+g}</option>`).join('')}
       </select>
     </div>
     <div style="font-size:12px;color:var(--text2)">${lang==='he'?'זמן מומלץ':'Recommended'}<br><strong style="color:var(--accent)">${GRADE_HOURS[grade]||2.5}${lang==='he'?' שעות':' hrs'}</strong></div>
