@@ -31,7 +31,7 @@
   --bottom-h: 64px;
 }
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
-html,body{height:100%;overscroll-behavior:none;}
+html,body{height:100%;overscroll-behavior:none;background:#0b0d12;}
 body{
   font-family:'DM Sans',sans-serif;
   background:var(--bg);color:var(--text);
@@ -320,16 +320,16 @@ body:not(.rtl) .event-study{border-right:none;border-left:2px solid var(--accent
   background:linear-gradient(135deg,var(--surface2),var(--surface));
   border-bottom:1px solid var(--border);
   padding:14px 16px;
-  display:flex;align-items:center;gap:12px;
-  transform:translateY(-100%);transition:transform .3s ease;
+  display:none;align-items:center;gap:12px;
   box-shadow:0 4px 20px rgba(0,0,0,.3);
+  pointer-events:all;
 }
-.greeting-banner.show{transform:translateY(0);}
+.greeting-banner.show{display:flex;}
 .greeting-banner .gb-icon{font-size:32px;flex-shrink:0;}
 .greeting-banner .gb-text{flex:1;}
 .greeting-banner .gb-text h4{font-size:15px;font-weight:800;margin-bottom:2px;}
 .greeting-banner .gb-text p{font-size:12px;color:var(--text2);}
-.greeting-banner .gb-close{background:none;border:none;color:var(--text2);font-size:20px;cursor:pointer;padding:4px;flex-shrink:0;}
+.greeting-banner .gb-close{background:none;border:none;color:var(--text2);font-size:24px;cursor:pointer;padding:8px;flex-shrink:0;line-height:1;}
 .notif-toast{
   position:fixed;top:72px;left:50%;transform:translateX(-50%) translateY(-20px);
   background:var(--surface2);border:1px solid var(--accent);
@@ -1474,16 +1474,18 @@ function getActivityIcon(name) {
 function checkActivityGreeting() {
   if (!currentUser) return;
   const data = getUserData();
+  if (!data.activities || !data.activities.length) return;
   const now = new Date();
   const todayDay = now.getDay();
   const nowMins = now.getHours() * 60 + now.getMinutes();
 
-  // Find activity starting within 30 mins or currently happening
+  // Only show if there's a WEEKLY activity with a start time within 30 mins from now
   const upcoming = data.activities.filter(act => {
     if (act.type !== 'weekly') return false;
     if (!(act.days||[]).includes(todayDay)) return false;
-    if (!act.start) return false;
+    if (!act.start || !act.start.includes(':')) return false;
     const [h, m] = act.start.split(':').map(Number);
+    if (isNaN(h) || isNaN(m)) return false;
     const startMins = h * 60 + m;
     return nowMins >= startMins - 30 && nowMins < startMins;
   });
@@ -1494,24 +1496,18 @@ function checkActivityGreeting() {
   const actKey = 'sf2_greeted_' + currentUser + '_' + act.name + '_' + now.toDateString();
   const dismissedKey = 'sf2_dismissed_' + currentUser + '_' + act.name + '_' + now.toDateString();
 
-  // Don't show if already dismissed today
   if (getStore(dismissedKey)) return;
-  // Don't show more than once per session
   if (getStore(actKey)) return;
   setStore(actKey, true);
 
   const icon = getActivityIcon(act.name);
-  const actName = act.name;
 
   // Check if studied today
-  const todayExams = data.exams.filter(e => {
+  const studiedToday = (data.exams||[]).some(e => {
     const ed = new Date(e.date); ed.setHours(0,0,0,0);
     const diff = Math.round((ed - now) / 86400000);
-    return diff >= 0 && diff <= 3;
-  });
-  const studiedToday = todayExams.some(e => {
-    const examId = e.date+'_'+e.subject;
-    return getStudyHours(examId) > 0;
+    if (diff < 0 || diff > 3) return false;
+    return getStudyHours(e.date+'_'+e.subject) > 0;
   });
 
   const banner = document.getElementById('greeting-banner');
@@ -1522,12 +1518,12 @@ function checkActivityGreeting() {
       ? `כל הכבוד על הלמידה! ${icon}`
       : `Great studying! ${icon}`;
     document.getElementById('gb-sub').textContent = lang==='he'
-      ? `עכשיו בהצלחה ב${actName}! 💪`
-      : `Now go crush ${actName}! 💪`;
+      ? `עכשיו בהצלחה ב${act.name}! 💪`
+      : `Now go crush ${act.name}! 💪`;
   } else {
     document.getElementById('gb-title').textContent = lang==='he'
-      ? `בהצלחה ב${actName}! ${icon}`
-      : `Good luck at ${actName}! ${icon}`;
+      ? `בהצלחה ב${act.name}! ${icon}`
+      : `Good luck at ${act.name}! ${icon}`;
     document.getElementById('gb-sub').textContent = lang==='he'
       ? 'תתאמץ ותיהנה 💪'
       : 'Have a great session 💪';
@@ -1536,12 +1532,9 @@ function checkActivityGreeting() {
   banner.classList.add('show');
 
   // Auto hide when activity starts
-  const [h, m] = act.start.split(':').map(Number);
-  const startMins = h * 60 + m;
-  const msUntilStart = (startMins - nowMins) * 60 * 1000;
-  if (msUntilStart > 0) {
-    setTimeout(() => banner.classList.remove('show'), msUntilStart);
-  }
+  const [h2, m2] = act.start.split(':').map(Number);
+  const msUntilStart = ((h2*60+m2) - nowMins) * 60 * 1000;
+  if (msUntilStart > 0) setTimeout(() => banner.classList.remove('show'), msUntilStart);
 }
 
 function closeGreeting() {
