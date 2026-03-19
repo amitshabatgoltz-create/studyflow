@@ -129,14 +129,15 @@ body.rtl .lang-toggle{right:auto;left:16px;}
 .bottom-nav-inner{display:flex;height:100%;align-items:center;}
 .bnav-btn{
   flex:1;display:flex;flex-direction:column;align-items:center;
-  justify-content:center;gap:2px;border:none;background:transparent;
+  justify-content:center;gap:3px;border:none;background:transparent;
   color:var(--text3);cursor:pointer;font-family:inherit;
   padding:4px 2px;border-radius:10px;transition:all .2s;
-  font-size:10px;font-weight:600;white-space:nowrap;
+  font-size:11px;font-weight:700;white-space:nowrap;
 }
-.bnav-btn .icon{font-size:22px;transition:transform .2s;}
+.bnav-btn .icon{font-size:28px;transition:transform .2s;line-height:1;}
+.bnav-btn .label{font-size:11px;}
 .bnav-btn.active{color:var(--accent);}
-.bnav-btn.active .icon{transform:scale(1.15);}
+.bnav-btn.active .icon{transform:scale(1.1);}
 
 /* ── PAGES ── */
 .page-wrap{flex:1;overflow-y:auto;padding-bottom:calc(var(--bottom-h) + 16px);}
