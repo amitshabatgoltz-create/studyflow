@@ -314,7 +314,22 @@ body:not(.rtl) .event-study{border-right:none;border-left:2px solid var(--accent
 .reminder-toggle input:checked+.toggle-slider{background:var(--accent);}
 .reminder-toggle input:checked+.toggle-slider:before{transform:translateX(18px);}
 
-/* In-app notification toast */
+/* Activity greeting banner */
+.greeting-banner{
+  position:fixed;top:60px;left:0;right:0;z-index:500;
+  background:linear-gradient(135deg,var(--surface2),var(--surface));
+  border-bottom:1px solid var(--border);
+  padding:14px 16px;
+  display:flex;align-items:center;gap:12px;
+  transform:translateY(-100%);transition:transform .3s ease;
+  box-shadow:0 4px 20px rgba(0,0,0,.3);
+}
+.greeting-banner.show{transform:translateY(0);}
+.greeting-banner .gb-icon{font-size:32px;flex-shrink:0;}
+.greeting-banner .gb-text{flex:1;}
+.greeting-banner .gb-text h4{font-size:15px;font-weight:800;margin-bottom:2px;}
+.greeting-banner .gb-text p{font-size:12px;color:var(--text2);}
+.greeting-banner .gb-close{background:none;border:none;color:var(--text2);font-size:20px;cursor:pointer;padding:4px;flex-shrink:0;}
 .notif-toast{
   position:fixed;top:72px;left:50%;transform:translateX(-50%) translateY(-20px);
   background:var(--surface2);border:1px solid var(--accent);
@@ -403,7 +418,15 @@ body:not(.rtl) .event-study{border-right:none;border-left:2px solid var(--accent
 
 <!-- APP -->
 <div id="app">
-  <div class="topbar">
+<!-- GREETING BANNER -->
+<div class="greeting-banner" id="greeting-banner">
+  <div class="gb-icon" id="gb-icon">⚽</div>
+  <div class="gb-text">
+    <h4 id="gb-title">בהצלחה באימון!</h4>
+    <p id="gb-sub">תתאמץ ותיהנה 💪</p>
+  </div>
+  <button class="gb-close" onclick="closeGreeting()">✕</button>
+</div>
     <div class="topbar-brand">📚 StudyFlow</div>
     <div class="topbar-nav">
       <button class="nav-btn active" onclick="goPage('dashboard')" id="nav-dashboard" data-en="Weekly View" data-he="לוח שבועי">Weekly View</button>
@@ -802,6 +825,7 @@ function loginSuccess(){
   loadReminderUI();
   scheduleAllReminders();
   checkExamTomorrow();
+  setTimeout(checkActivityGreeting, 1000);
 }
 
 function logout(){
@@ -1425,7 +1449,121 @@ function renderScheduled() {
   }).join('');
 }
 
-// ─── INIT ────────────────────────────────────────────
+// ─── GREETING BANNER ─────────────────────────────────
+const ACTIVITY_ICONS = {
+  'כדורגל':'⚽', 'soccer':'⚽', 'football':'⚽',
+  'כדורסל':'🏀', 'basketball':'🏀',
+  'טניס':'🎾', 'tennis':'🎾',
+  'שחמט':'♟️', 'chess':'♟️',
+  'כדורעף':'🏐', 'volleyball':'🏐',
+  'שחייה':'🏊', 'swimming':'🏊',
+  'ריצה':'🏃', 'running':'🏃',
+  'גיטרה':'🎸', 'guitar':'🎸',
+  'פסנתר':'🎹', 'piano':'🎹',
+  'ציור':'🎨', 'art':'🎨',
+};
+
+function getActivityIcon(name) {
+  const lower = name.toLowerCase();
+  for (const [key, icon] of Object.entries(ACTIVITY_ICONS)) {
+    if (lower.includes(key.toLowerCase())) return icon;
+  }
+  return '🏃';
+}
+
+function checkActivityGreeting() {
+  if (!currentUser) return;
+  const data = getUserData();
+  const now = new Date();
+  const todayDay = now.getDay();
+  const nowMins = now.getHours() * 60 + now.getMinutes();
+
+  // Find activity starting within 30 mins or currently happening
+  const upcoming = data.activities.filter(act => {
+    if (act.type !== 'weekly') return false;
+    if (!(act.days||[]).includes(todayDay)) return false;
+    if (!act.start) return false;
+    const [h, m] = act.start.split(':').map(Number);
+    const startMins = h * 60 + m;
+    return nowMins >= startMins - 30 && nowMins < startMins;
+  });
+
+  if (!upcoming.length) return;
+
+  const act = upcoming[0];
+  const actKey = 'sf2_greeted_' + currentUser + '_' + act.name + '_' + now.toDateString();
+  const dismissedKey = 'sf2_dismissed_' + currentUser + '_' + act.name + '_' + now.toDateString();
+
+  // Don't show if already dismissed today
+  if (getStore(dismissedKey)) return;
+  // Don't show more than once per session
+  if (getStore(actKey)) return;
+  setStore(actKey, true);
+
+  const icon = getActivityIcon(act.name);
+  const actName = act.name;
+
+  // Check if studied today
+  const todayExams = data.exams.filter(e => {
+    const ed = new Date(e.date); ed.setHours(0,0,0,0);
+    const diff = Math.round((ed - now) / 86400000);
+    return diff >= 0 && diff <= 3;
+  });
+  const studiedToday = todayExams.some(e => {
+    const examId = e.date+'_'+e.subject;
+    return getStudyHours(examId) > 0;
+  });
+
+  const banner = document.getElementById('greeting-banner');
+  document.getElementById('gb-icon').textContent = icon;
+
+  if (studiedToday) {
+    document.getElementById('gb-title').textContent = lang==='he'
+      ? `כל הכבוד על הלמידה! ${icon}`
+      : `Great studying! ${icon}`;
+    document.getElementById('gb-sub').textContent = lang==='he'
+      ? `עכשיו בהצלחה ב${actName}! 💪`
+      : `Now go crush ${actName}! 💪`;
+  } else {
+    document.getElementById('gb-title').textContent = lang==='he'
+      ? `בהצלחה ב${actName}! ${icon}`
+      : `Good luck at ${actName}! ${icon}`;
+    document.getElementById('gb-sub').textContent = lang==='he'
+      ? 'תתאמץ ותיהנה 💪'
+      : 'Have a great session 💪';
+  }
+
+  banner.classList.add('show');
+
+  // Auto hide when activity starts
+  const [h, m] = act.start.split(':').map(Number);
+  const startMins = h * 60 + m;
+  const msUntilStart = (startMins - nowMins) * 60 * 1000;
+  if (msUntilStart > 0) {
+    setTimeout(() => banner.classList.remove('show'), msUntilStart);
+  }
+}
+
+function closeGreeting() {
+  const banner = document.getElementById('greeting-banner');
+  banner.classList.remove('show');
+  // Save dismissed state
+  const now = new Date();
+  const data = getUserData();
+  const todayDay = now.getDay();
+  const nowMins = now.getHours() * 60 + now.getMinutes();
+  const act = (data.activities||[]).find(a => {
+    if (a.type !== 'weekly') return false;
+    if (!(a.days||[]).includes(todayDay)) return false;
+    if (!a.start) return false;
+    const [h2,m2] = a.start.split(':').map(Number);
+    const sm = h2*60+m2;
+    return nowMins >= sm-30 && nowMins < sm;
+  });
+  if (act) {
+    setStore('sf2_dismissed_'+currentUser+'_'+act.name+'_'+now.toDateString(), true);
+  }
+}
 document.addEventListener('keydown',e=>{if(e.key==='Enter'&&document.getElementById('auth-screen').style.display!=='none')handleAuth();});
 buildDaysCheckboxes();
 
