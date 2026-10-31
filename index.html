@@ -1,1637 +1,463 @@
 <!DOCTYPE html>
-<html lang="en" dir="ltr">
+<html lang="he" dir="rtl">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
-<title>StudyFlow</title>
-<link rel="manifest" href="manifest.json">
-<meta name="theme-color" content="#5b8def">
-<meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta name="apple-mobile-web-app-title" content="StudyFlow">
-<link rel="apple-touch-icon" href="icon-192.png">
-<link href="https://fonts.googleapis.com/css2?family=Heebo:wght@300;400;500;600;700;800;900&family=DM+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<title>אגרוף! – משחק אגרופים</title>
 <style>
-:root {
-  --bg: #0b0d12;
-  --surface: #13161e;
-  --surface2: #1b1f2b;
-  --surface3: #222738;
-  --border: #2c3144;
-  --accent: #5b8def;
-  --accent2: #ff6b6b;
-  --accent3: #43e97b;
-  --accent4: #ffd166;
-  --text: #e8eaf2;
-  --text2: #8b92b0;
-  --text3: #4e546e;
-  --radius: 14px;
-  --radius-sm: 9px;
-  --nav-h: 60px;
-  --bottom-h: 64px;
-}
-*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
-html,body{height:100%;overscroll-behavior:none;background:#0b0d12;}
-body{
-  font-family:'DM Sans',sans-serif;
-  background:var(--bg);color:var(--text);
-  min-height:100vh;
-}
-body.rtl{direction:rtl;font-family:'Heebo',sans-serif;}
-
-/* ── LANG TOGGLE ── */
-.lang-toggle{
-  position:fixed;top:14px;right:16px;z-index:9999;
-  background:var(--surface2);border:1px solid var(--border);
-  border-radius:20px;padding:4px 6px;display:flex;gap:2px;
-}
-body.rtl .lang-toggle{right:auto;left:16px;}
-.lang-btn{
-  padding:4px 10px;border-radius:16px;border:none;
-  font-size:12px;font-weight:700;cursor:pointer;
-  background:transparent;color:var(--text2);
-  font-family:inherit;transition:all .2s;
-}
-.lang-btn.active{background:var(--accent);color:#fff;}
-
-/* ── SPLASH ── */
-#splash{
-  position:fixed;inset:0;background:#0b0d12;
-  display:flex;flex-direction:column;align-items:center;justify-content:center;
-  z-index:9999;
-}
-#splash .s-icon{font-size:64px;margin-bottom:16px;}
-#splash h2{font-size:24px;font-weight:900;color:#5b8def;letter-spacing:-0.5px;}
-
-/* ── AUTH ── */
-#auth-screen{
-  min-height:100vh;display:flex;align-items:center;
-  justify-content:center;padding:20px;
-  background:radial-gradient(ellipse at 40% 20%,#111c3a 0%,#0b0d12 65%);
-}
-
-/* ── APP SHELL ── */
-#app{display:none;flex-direction:column;min-height:100vh;}
-  background:var(--surface);border:1px solid var(--border);
-  border-radius:24px;padding:36px 28px;width:100%;max-width:380px;
-  box-shadow:0 24px 60px rgba(0,0,0,.5);
-}
-.auth-logo{text-align:center;margin-bottom:32px;}
-.auth-logo .logo-icon{font-size:44px;margin-bottom:10px;}
-.auth-logo h1{font-size:26px;font-weight:800;color:var(--accent);letter-spacing:-0.5px;}
-.auth-logo p{font-size:13px;color:var(--text2);margin-top:4px;}
-.auth-tabs{display:flex;gap:0;margin-bottom:24px;background:var(--surface2);border-radius:10px;padding:4px;}
-.auth-tab{flex:1;padding:8px;text-align:center;border-radius:7px;cursor:pointer;font-size:14px;font-weight:600;color:var(--text2);transition:all .2s;}
-.auth-tab.active{background:var(--accent);color:#fff;}
-.form-group{margin-bottom:16px;}
-.form-group label{display:block;font-size:12px;font-weight:600;color:var(--text2);margin-bottom:6px;text-transform:uppercase;letter-spacing:.5px;}
-.form-group input,.form-group select{
-  width:100%;padding:12px 14px;
-  background:var(--surface2);border:1px solid var(--border);
-  border-radius:10px;color:var(--text);font-size:15px;
-  font-family:inherit;outline:none;transition:border-color .2s;
-}
-.form-group input:focus,.form-group select:focus{border-color:var(--accent);}
-.btn-primary{
-  width:100%;padding:13px;background:var(--accent);
-  border:none;border-radius:10px;color:#fff;
-  font-size:16px;font-weight:700;font-family:inherit;
-  cursor:pointer;transition:all .2s;margin-top:4px;
-}
-.btn-primary:hover{background:#4a7de0;}
-.btn-primary:active{transform:scale(.98);}
-.auth-error{color:var(--accent2);font-size:13px;text-align:center;margin-top:10px;min-height:18px;}
-
-/* ── APP SHELL ── */
-#app{display:none;flex-direction:column;min-height:100vh;}
-
-/* Top bar – desktop only */
-.topbar{
-  background:var(--surface);border-bottom:1px solid var(--border);
-  padding:0 20px;height:var(--nav-h);
-  display:flex;align-items:center;justify-content:space-between;
-  position:sticky;top:0;z-index:100;
-}
-.topbar-brand{font-size:20px;font-weight:800;color:var(--accent);letter-spacing:-.5px;}
-.topbar-nav{display:flex;gap:4px;}
-.nav-btn{
-  padding:7px 14px;border-radius:8px;border:none;
-  background:transparent;color:var(--text2);font-size:14px;
-  font-family:inherit;font-weight:600;cursor:pointer;transition:all .2s;
-}
-.nav-btn:hover,.nav-btn.active{background:var(--surface2);color:var(--text);}
-.topbar-right{display:flex;align-items:center;gap:10px;}
-.user-pill{font-size:13px;color:var(--text2);background:var(--surface2);padding:6px 12px;border-radius:8px;font-weight:600;}
-.logout-btn{
-  padding:6px 12px;border-radius:8px;border:1px solid var(--border);
-  background:transparent;color:var(--text2);font-size:13px;
-  font-family:inherit;cursor:pointer;transition:all .2s;
-}
-.logout-btn:hover{border-color:var(--accent2);color:var(--accent2);}
-
-/* Bottom nav – mobile only */
-.bottom-nav{
-  display:none;position:fixed;bottom:0;left:0;right:0;
-  height:80px;background:var(--surface);
-  border-top:2px solid var(--border);
-  padding-bottom:env(safe-area-inset-bottom);
-  z-index:100;
-}
-.bottom-nav-inner{display:flex;height:100%;align-items:stretch;width:100%;}
-.bnav-btn{
-  flex:1;display:flex;flex-direction:column;align-items:center;
-  justify-content:center;gap:5px;border:none;background:transparent;
-  color:var(--text3);cursor:pointer;font-family:inherit;
-  padding:10px 4px;transition:all .2s;
-}
-.bnav-btn .icon{font-size:30px;line-height:1;transition:transform .2s;}
-.bnav-btn .label{font-size:12px;font-weight:700;letter-spacing:.2px;}
-.bnav-btn.active{color:var(--accent);background:rgba(91,141,239,.1);}
-.bnav-btn.active .icon{transform:scale(1.15);}
-
-/* ── PAGES ── */
-.page-wrap{flex:1;overflow-y:auto;padding-bottom:calc(var(--bottom-h) + 16px);}
-.page{display:none;padding:20px 16px;max-width:900px;margin:0 auto;}
-.page.active{display:block;}
-
-.page-header{margin-bottom:22px;}
-.page-header h2{font-size:22px;font-weight:800;}
-.page-header p{color:var(--text2);font-size:13px;margin-top:3px;}
-
-/* ── WEEK GRID ── */
-.week-scroll{overflow-x:auto;-webkit-overflow-scrolling:touch;margin:0 -16px;padding:0 16px;}
-.week-grid{display:grid;grid-template-columns:repeat(7,minmax(110px,1fr));gap:8px;min-width:700px;margin-bottom:24px;}
-.day-col{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;}
-.day-header{padding:8px 6px;text-align:center;font-size:11px;font-weight:700;color:var(--text2);background:var(--surface2);border-bottom:1px solid var(--border);}
-.day-header.today{color:var(--accent);}
-.day-body{padding:5px;min-height:100px;}
-.day-event{border-radius:6px;padding:4px 6px;margin-bottom:3px;font-size:10px;font-weight:600;line-height:1.4;}
-.event-busy{background:rgba(255,107,107,.15);color:var(--accent2);border-right:2px solid var(--accent2);}
-body:not(.rtl) .event-busy{border-right:none;border-left:2px solid var(--accent2);}
-.event-exam{background:rgba(91,141,239,.18);color:var(--accent);border-right:2px solid var(--accent);}
-body:not(.rtl) .event-exam{border-right:none;border-left:2px solid var(--accent);}
-.event-study{background:rgba(67,233,123,.12);color:var(--accent3);border-right:2px solid var(--accent3);}
-body:not(.rtl) .event-study{border-right:none;border-left:2px solid var(--accent3);}
-
-/* ── AI CARD ── */
-.ai-card{
-  background:linear-gradient(135deg,rgba(91,141,239,.12) 0%,var(--surface) 100%);
-  border:1px solid rgba(91,141,239,.25);
-  border-radius:var(--radius);padding:18px 20px;margin-bottom:22px;
-}
-.ai-card-header{display:flex;align-items:center;gap:10px;margin-bottom:14px;flex-wrap:wrap;}
-.ai-badge{background:var(--accent);color:#fff;font-size:10px;font-weight:700;padding:3px 9px;border-radius:20px;white-space:nowrap;}
-.ai-card-header h3{font-size:15px;font-weight:700;}
-.ai-suggestion{display:flex;align-items:flex-start;gap:10px;padding:9px 0;border-bottom:1px solid rgba(255,255,255,.05);}
-.ai-suggestion:last-child{border-bottom:none;}
-.ai-dot{width:7px;height:7px;border-radius:50%;background:var(--accent3);margin-top:5px;flex-shrink:0;}
-.ai-suggestion p{font-size:13px;color:var(--text);line-height:1.6;}
-.ai-loading{color:var(--text2);font-size:13px;text-align:center;padding:16px;}
-.btn-ai{
-  padding:8px 16px;background:var(--accent);border:none;border-radius:8px;
-  color:#fff;font-size:13px;font-weight:700;font-family:inherit;
-  cursor:pointer;transition:opacity .2s;margin-top:10px;display:inline-block;
-}
-.btn-ai:hover{opacity:.85;}
-.btn-ai:disabled{opacity:.5;cursor:not-allowed;}
-
-/* ── SECTION HEADER ── */
-.section-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;margin-top:8px;}
-.section-header h3{font-size:16px;font-weight:700;}
-.btn-add{
-  padding:7px 14px;background:var(--accent);border:none;border-radius:8px;
-  color:#fff;font-size:13px;font-weight:700;font-family:inherit;cursor:pointer;
-  display:flex;align-items:center;gap:5px;transition:opacity .2s;white-space:nowrap;
-}
-.btn-add:hover{opacity:.85;}
-.btn-add:active{transform:scale(.97);}
-
-/* ── ACTIVITY CARDS ── */
-.activity-list{display:flex;flex-direction:column;gap:8px;margin-bottom:28px;}
-.activity-card{
-  background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);
-  padding:12px 14px;display:flex;align-items:center;gap:12px;
-}
-.activity-icon{font-size:20px;flex-shrink:0;}
-.activity-info{flex:1;min-width:0;}
-.activity-info h4{font-size:14px;font-weight:700;margin-bottom:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
-.activity-info p{font-size:12px;color:var(--text2);}
-.activity-badge{font-size:10px;font-weight:700;padding:3px 9px;border-radius:20px;white-space:nowrap;flex-shrink:0;}
-.activity-badge.weekly{background:rgba(91,141,239,.18);color:var(--accent);}
-.activity-badge.once{background:rgba(255,107,107,.15);color:var(--accent2);}
-.delete-btn{background:none;border:none;color:var(--text3);font-size:16px;cursor:pointer;padding:4px 6px;border-radius:6px;transition:all .2s;flex-shrink:0;}
-.delete-btn:hover{background:rgba(255,107,107,.15);color:var(--accent2);}
-
-/* ── EXAM CARDS ── */
-.exam-card{
-  background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);
-  padding:14px 16px;display:flex;align-items:center;gap:14px;margin-bottom:8px;
-}
-.exam-date-box{background:var(--surface2);border-radius:10px;padding:7px 12px;text-align:center;min-width:50px;flex-shrink:0;}
-.exam-date-box .day-num{font-size:20px;font-weight:900;color:var(--accent);line-height:1;}
-.exam-date-box .month{font-size:10px;color:var(--text2);font-weight:600;}
-.exam-info{flex:1;min-width:0;}
-.exam-info h4{font-size:14px;font-weight:700;margin-bottom:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
-.exam-info p{font-size:12px;color:var(--text2);}
-.days-left{font-size:11px;font-weight:700;padding:3px 9px;border-radius:20px;white-space:nowrap;flex-shrink:0;}
-.days-left.urgent{background:rgba(255,107,107,.15);color:var(--accent2);}
-.days-left.soon{background:rgba(255,209,102,.15);color:var(--accent4);}
-.days-left.ok{background:rgba(67,233,123,.1);color:var(--accent3);}
-
-/* ── EMPTY STATE ── */
-.empty-state{text-align:center;padding:36px 16px;color:var(--text3);}
-.empty-state .big{font-size:40px;margin-bottom:10px;}
-.empty-state p{font-size:14px;}
-
-/* ── MODAL ── */
-.modal-overlay{
-  position:fixed;inset:0;background:rgba(0,0,0,.75);
-  display:flex;align-items:flex-end;justify-content:center;
-  z-index:1000;backdrop-filter:blur(4px);
-  opacity:0;pointer-events:none;transition:opacity .2s;
-}
-.modal-overlay.open{opacity:1;pointer-events:all;}
-.modal{
-  background:var(--surface);border:1px solid var(--border);
-  border-radius:24px 24px 0 0;padding:24px 20px;
-  width:100%;max-width:520px;
-  box-shadow:0 -8px 40px rgba(0,0,0,.5);
-  transform:translateY(40px);transition:transform .25s ease;
-  max-height:90vh;overflow-y:auto;
-  padding-bottom:calc(24px + env(safe-area-inset-bottom));
-}
-.modal-overlay.open .modal{transform:translateY(0);}
-.modal-handle{width:36px;height:4px;background:var(--border);border-radius:2px;margin:0 auto 20px;}
-.modal h3{font-size:18px;font-weight:800;margin-bottom:20px;}
-.modal .form-group select{direction:inherit;}
-.days-checkboxes{display:flex;flex-wrap:wrap;gap:8px;}
-.day-check{display:flex;align-items:center;gap:6px;cursor:pointer;background:var(--surface2);padding:6px 10px;border-radius:8px;border:1px solid var(--border);transition:all .2s;}
-.day-check:has(input:checked){background:rgba(91,141,239,.2);border-color:var(--accent);}
-.day-check input{accent-color:var(--accent);width:15px;height:15px;}
-.day-check span{font-size:13px;font-weight:600;}
-.time-row{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
-.modal-actions{display:flex;gap:10px;margin-top:20px;}
-.btn-cancel{
-  flex:1;padding:12px;background:var(--surface2);border:1px solid var(--border);
-  border-radius:10px;color:var(--text2);font-size:15px;font-weight:600;
-  font-family:inherit;cursor:pointer;transition:all .2s;
-}
-.btn-cancel:hover{border-color:var(--accent2);color:var(--accent2);}
-.btn-save{flex:1;}
-
-/* ── RESPONSIVE ── */
-@media(min-width:640px){
-  .modal-overlay{align-items:center;}
-  .modal{border-radius:20px;max-width:460px;}
-  .modal-handle{display:none;}
-  .bottom-nav{display:none;}
-  .page-wrap{padding-bottom:16px;}
-}
-@media(max-width:639px){
-  .topbar-nav{display:none;}
-  .topbar{padding:0 14px;}
-  .user-pill{display:none;}
-  .logout-btn{display:none;}
-  .bottom-nav{display:flex;}
-  .page{padding:16px 14px;}
-  .topbar-brand{font-size:18px;}
-  .lang-toggle{top:12px;right:14px;}
-  body.rtl .lang-toggle{right:auto;left:14px;}
-}
-
-/* ── REMINDERS ── */
-.reminder-card{
-  background:var(--surface);border:1px solid var(--border);
-  border-radius:var(--radius);padding:14px 16px;
-  display:flex;align-items:center;gap:12px;margin-bottom:8px;
-}
-.reminder-card .r-icon{font-size:20px;flex-shrink:0;}
-.reminder-card .r-info{flex:1;min-width:0;}
-.reminder-card .r-info h4{font-size:14px;font-weight:700;margin-bottom:2px;}
-.reminder-card .r-info p{font-size:12px;color:var(--text2);}
-.reminder-toggle{
-  position:relative;width:40px;height:22px;flex-shrink:0;
-}
-.reminder-toggle input{opacity:0;width:0;height:0;position:absolute;}
-.toggle-slider{
-  position:absolute;inset:0;background:var(--surface3);
-  border-radius:11px;cursor:pointer;transition:background .2s;
-}
-.toggle-slider:before{
-  content:'';position:absolute;left:3px;top:3px;
-  width:16px;height:16px;background:#fff;border-radius:50%;
-  transition:transform .2s;
-}
-.reminder-toggle input:checked+.toggle-slider{background:var(--accent);}
-.reminder-toggle input:checked+.toggle-slider:before{transform:translateX(18px);}
-
-/* Activity greeting banner */
-.greeting-banner{
-  position:fixed;top:60px;left:0;right:0;z-index:500;
-  background:linear-gradient(135deg,var(--surface2),var(--surface));
-  border-bottom:1px solid var(--border);
-  padding:14px 16px;
-  display:none;align-items:center;gap:12px;
-  box-shadow:0 4px 20px rgba(0,0,0,.3);
-  pointer-events:all;
-}
-.greeting-banner.show{display:flex;}
-.greeting-banner .gb-icon{font-size:32px;flex-shrink:0;}
-.greeting-banner .gb-text{flex:1;}
-.greeting-banner .gb-text h4{font-size:15px;font-weight:800;margin-bottom:2px;}
-.greeting-banner .gb-text p{font-size:12px;color:var(--text2);}
-.greeting-banner .gb-close{background:none;border:none;color:var(--text2);font-size:24px;cursor:pointer;padding:8px;flex-shrink:0;line-height:1;}
-.notif-toast{
-  position:fixed;top:72px;left:50%;transform:translateX(-50%) translateY(-20px);
-  background:var(--surface2);border:1px solid var(--accent);
-  border-radius:12px;padding:12px 18px;z-index:9999;
-  display:flex;align-items:center;gap:10px;
-  opacity:0;transition:all .3s;pointer-events:none;
-  max-width:90vw;box-shadow:0 8px 24px rgba(0,0,0,.4);
-  white-space:nowrap;
-}
-.notif-toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
-.notif-toast .n-icon{font-size:20px;}
-.notif-toast .n-text{font-size:13px;font-weight:600;}
-
-.notif-banner{
-  background:rgba(255,209,102,.1);border:1px solid rgba(255,209,102,.3);
-  border-radius:var(--radius);padding:14px 16px;margin-bottom:16px;
-  display:flex;align-items:flex-start;gap:12px;
-}
-.notif-banner .nb-icon{font-size:22px;flex-shrink:0;}
-.notif-banner .nb-text{font-size:13px;color:var(--accent4);font-weight:600;line-height:1.5;}
-
-::-webkit-scrollbar{width:5px;}
-::-webkit-scrollbar-track{background:transparent;}
-::-webkit-scrollbar-thumb{background:var(--border);border-radius:3px;}
-
-@media(min-width:640px){
-  .modal-overlay{align-items:center;}
-  .modal{border-radius:20px;max-width:460px;}
-  .modal-handle{display:none;}
-  .bottom-nav{display:none;}
-  .page-wrap{padding-bottom:16px;}
-}
-@media(max-width:639px){
-  :root{--bottom-h:80px;}
-  .topbar{display:none;}
-  .bottom-nav{display:flex;}
-  .page{padding:14px 12px;}
-  .page-wrap{padding-bottom:96px;padding-top:0;}
-  .lang-toggle{top:10px;right:16px;}
-  body.rtl .lang-toggle{right:auto;left:16px;}
-  .page-header h2{font-size:20px;}
-  .ai-card{padding:14px 14px;}
-  #app{padding-top:0;}
-}
+  html,body{margin:0;height:100%;overflow:hidden;background:#1b1030;font-family:"Segoe UI",Arial,sans-serif;touch-action:none;user-select:none;-webkit-user-select:none}
+  canvas{display:block;width:100vw;height:100vh;cursor:crosshair}
+  #hud{position:fixed;top:0;left:0;right:0;display:flex;justify-content:space-between;align-items:center;padding:10px 16px;color:#fff;font-weight:700;font-size:18px;pointer-events:none;text-shadow:0 2px 0 #000}
+  #hpwrap{flex:1;max-width:340px;margin:0 16px;height:18px;background:#0008;border:2px solid #fff;border-radius:10px;overflow:hidden}
+  #hp{height:100%;width:100%;background:linear-gradient(90deg,#ff3b3b,#ffd23b);transition:width .15s}
+  .overlay{position:fixed;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;background:#0009;color:#fff;text-align:center;padding:20px}
+  .overlay h1{font-size:clamp(40px,9vw,84px);margin:0 0 8px;color:#ffd23b;text-shadow:0 5px 0 #b3261e,0 8px 20px #000}
+  .overlay p{font-size:clamp(15px,3.6vw,20px);max-width:520px;line-height:1.6;margin:6px 0}
+  .overlay button{margin-top:18px;font-size:24px;font-weight:800;padding:14px 44px;border:0;border-radius:40px;background:#ff3b3b;color:#fff;box-shadow:0 6px 0 #9b1b1b;cursor:pointer}
+  .overlay button:active{transform:translateY(4px);box-shadow:0 2px 0 #9b1b1b}
+  .hidden{display:none}
+  kbd{background:#fff2;border:1px solid #fff6;border-radius:5px;padding:1px 7px;font-family:inherit}
 </style>
 </head>
 <body>
-
-<!-- SPLASH -->
-<div id="splash">
-  <div class="s-icon">📚</div>
-  <h2>StudyFlow</h2>
+<canvas id="c"></canvas>
+<div id="hud">
+  <div>סיבוב <span id="round">1</span></div>
+  <div id="hpwrap"><div id="hp"></div></div>
+  <div>⏱ <span id="time">30</span></div>
+</div>
+<div id="hud2" style="position:fixed;top:44px;left:0;right:0;text-align:center;color:#fff;font-weight:800;font-size:20px;pointer-events:none;text-shadow:0 2px 0 #000">
+  ניקוד: <span id="score">0</span> <span id="combo" style="color:#ffd23b"></span>
 </div>
 
-<!-- LANG TOGGLE -->
-<div class="lang-toggle">
-  <button class="lang-btn active" onclick="setLang('en')">EN</button>
-  <button class="lang-btn" onclick="setLang('he')">עב</button>
+<div id="start" class="overlay">
+  <h1>🥊 אגרוף!</h1>
+  <p>תרביץ לבחור עד נוק-אאוט לפני שנגמר הזמן.</p>
+  <p>לחיצה על צד שמאל או ימין של המסך = אגרוף ביד הזאת (אפשר לכוון ללחיצה).<br>
+     מקלדת: <kbd>A</kbd>/<kbd>←</kbd> יד שמאל, <kbd>D</kbd>/<kbd>→</kbd> יד ימין, <kbd>רווח</kbd> אפרקאט.</p>
+  <p>כשהוא מרים כפפות הוא חוסם, אז חכה רגע או תתקוף מהצד. רצף מכות מכפיל את הניקוד.</p>
+  <button id="startBtn">התחל!</button>
+  <p id="best" style="opacity:.8"></p>
 </div>
-
-<!-- AUTH -->
-<div id="auth-screen">
-  <div class="auth-card">
-    <div class="auth-logo">
-      <div class="logo-icon">📚</div>
-      <h1>StudyFlow</h1>
-      <p id="auth-sub">Your smart study planner</p>
-    </div>
-    <div class="auth-tabs">
-      <div class="auth-tab active" id="tab-login" onclick="switchTab('login')" data-en="Sign In" data-he="כניסה">Sign In</div>
-      <div class="auth-tab" id="tab-register" onclick="switchTab('register')" data-en="Sign Up" data-he="הרשמה">Sign Up</div>
-    </div>
-    <div class="form-group">
-      <label id="lbl-user" data-en="USERNAME" data-he="שם משתמש">USERNAME</label>
-      <input type="text" id="auth-username" data-en-ph="Enter username" data-he-ph="הכנס שם משתמש" placeholder="Enter username" autocomplete="username" />
-    </div>
-    <div class="form-group">
-      <label id="lbl-pass" data-en="PASSWORD" data-he="סיסמה">PASSWORD</label>
-      <input type="password" id="auth-password" data-en-ph="Enter password" data-he-ph="הכנס סיסמה" placeholder="Enter password" autocomplete="current-password" />
-    </div>
-    <div class="form-group" id="auth-name-group" style="display:none">
-      <label id="lbl-name" data-en="DISPLAY NAME" data-he="שם מלא">DISPLAY NAME</label>
-      <input type="text" id="auth-fullname" data-en-ph="Your name" data-he-ph="השם שלך" placeholder="Your name" />
-    </div>
-    <button class="btn-primary" id="auth-btn" onclick="handleAuth()">Sign In</button>
-    <div class="auth-error" id="auth-error"></div>
-  </div>
-</div>
-
-<!-- APP -->
-<div id="app">
-<!-- GREETING BANNER -->
-<div class="greeting-banner" id="greeting-banner">
-  <div class="gb-icon" id="gb-icon">⚽</div>
-  <div class="gb-text">
-    <h4 id="gb-title">בהצלחה באימון!</h4>
-    <p id="gb-sub">תתאמץ ותיהנה 💪</p>
-  </div>
-  <button class="gb-close" onclick="closeGreeting()">✕</button>
-</div>
-    <div class="topbar-brand">📚 StudyFlow</div>
-    <div class="topbar-nav">
-      <button class="nav-btn active" onclick="goPage('dashboard')" id="nav-dashboard" data-en="Weekly View" data-he="לוח שבועי">Weekly View</button>
-      <button class="nav-btn" onclick="goPage('activities')" id="nav-activities" data-en="Activities" data-he="פעילויות">Activities</button>
-      <button class="nav-btn" onclick="goPage('exams')" id="nav-exams" data-en="Exams" data-he="מבחנים">Exams</button>
-      <button class="nav-btn" onclick="goPage('reminders')" id="nav-reminders" data-en="Alerts" data-he="התראות">Alerts</button>
-    </div>
-    <div class="topbar-right">
-      <div class="user-pill" id="user-pill"></div>
-      <button class="logout-btn" id="logout-btn" onclick="logout()" data-en="Sign out" data-he="יציאה">Sign out</button>
-    </div>
-  </div>
-
-  <div class="page-wrap">
-    <!-- DASHBOARD -->
-    <div class="page active" id="page-dashboard">
-      <div class="page-header">
-        <h2 id="dash-title" data-en="My Week" data-he="השבוע שלי">My Week</h2>
-        <p id="dash-sub" data-en="Weekly view + AI study suggestions" data-he="לוח שבועי + המלצות לימוד מ-AI">Weekly view + AI study suggestions</p>
-      </div>
-      <div class="ai-card">
-        <div class="ai-card-header">
-          <span class="ai-badge">✨ AI</span>
-          <h3 id="ai-title" data-en="Smart Study Recommendations" data-he="המלצות לימוד חכמות">Smart Study Recommendations</h3>
-        </div>
-        <div id="ai-content">
-          <p class="ai-loading" id="ai-prompt-text" data-en="Click below to get personalized recommendations" data-he="לחץ למטה לקבל המלצות מותאמות אישית">Click below to get personalized recommendations</p>
-          <button class="btn-ai" id="ai-btn" onclick="getAISuggestions()" data-en="🤖 Analyze my schedule" data-he="🤖 נתח את הלוז שלי">🤖 Analyze my schedule</button>
-        </div>
-      </div>
-      <div class="week-scroll">
-        <div class="week-grid" id="week-grid"></div>
-      </div>
-    </div>
-
-    <!-- ACTIVITIES -->
-    <div class="page" id="page-activities">
-      <div class="page-header">
-        <h2 data-en="My Activities" data-he="הפעילויות שלי" id="act-page-title">My Activities</h2>
-        <p data-en="Everything that takes up your time" data-he="כל מה שתופס את הזמן שלך" id="act-page-sub">Everything that takes up your time</p>
-      </div>
-      <div class="section-header">
-        <h3 data-en="Recurring Activities" data-he="פעילויות קבועות" id="h-recurring">Recurring Activities</h3>
-        <button class="btn-add" onclick="openAddActivity('weekly')" id="btn-add-weekly" data-en="+ Add Recurring" data-he="+ הוסף קבועה">+ Add Recurring</button>
-      </div>
-      <div class="activity-list" id="weekly-list"></div>
-      <div class="section-header">
-        <h3 data-en="One-time Activities" data-he="פעילויות חד-פעמיות" id="h-once">One-time Activities</h3>
-        <button class="btn-add" onclick="openAddActivity('once')" id="btn-add-once" data-en="+ Add One-time" data-he="+ הוסף חד-פעמית">+ Add One-time</button>
-      </div>
-      <div class="activity-list" id="once-list"></div>
-    </div>
-
-    <!-- EXAMS -->
-    <div class="page" id="page-exams">
-      <div class="page-header">
-        <h2 data-en="Exams & Tests" data-he="מבחנים ומבדקים" id="exam-page-title">Exams & Tests</h2>
-        <p data-en="Track all upcoming tests" data-he="עקוב אחר כל המבחנים הקרובים" id="exam-page-sub">Track all upcoming tests</p>
-      </div>
-      <div class="section-header">
-        <h3 data-en="My Exams" data-he="המבחנים שלי" id="h-exams">My Exams</h3>
-        <button class="btn-add" onclick="openAddExam()" id="btn-add-exam" data-en="+ Add Exam" data-he="+ הוסף מבחן">+ Add Exam</button>
-      </div>
-      <div id="exam-list"></div>
-    </div>
-
-    <!-- REMINDERS -->
-    <div class="page" id="page-reminders">
-      <div class="page-header">
-        <h2 data-en="Alerts & Reminders" data-he="התראות ותזכורות">Alerts & Reminders</h2>
-        <p data-en="Get notified when it's time to study" data-he="קבל התראה כשהגיע הזמן ללמוד">Get notified when it's time to study</p>
-      </div>
-      <div id="reminders-banner"></div>
-      <div class="section-header">
-        <h3 data-en="Permission" data-he="הרשאה">Permission</h3>
-      </div>
-      <div class="reminder-card" style="margin-bottom:16px;">
-        <div class="r-icon">🔐</div>
-        <div class="r-info">
-          <h4 data-en="Browser Notifications" data-he="התראות דפדפן">Browser Notifications</h4>
-          <p id="perm-status">–</p>
-        </div>
-        <button class="btn-add" id="perm-btn" onclick="requestNotifPerm()" style="font-size:12px;padding:6px 12px;" data-en="Enable" data-he="אפשר">Enable</button>
-      </div>
-      <div class="section-header">
-        <h3 data-en="Study Reminders" data-he="תזכורות לימוד">Study Reminders</h3>
-      </div>
-      <div class="reminder-card">
-        <div class="r-icon">⏰</div>
-        <div class="r-info">
-          <h4 data-en="Remind me before study time" data-he="הזכר לי לפני זמן לימוד">Remind me before study time</h4>
-          <p data-en="Alert before a suggested study slot" data-he="התראה לפני חלון לימוד מוצע" style="font-size:12px;color:var(--text2);">Alert before a suggested study slot</p>
-        </div>
-        <label class="reminder-toggle"><input type="checkbox" id="toggle-study-remind" onchange="saveReminderSettings()"/><span class="toggle-slider"></span></label>
-      </div>
-      <div class="reminder-card" style="margin-bottom:16px;">
-        <div class="r-icon">🕐</div>
-        <div class="r-info">
-          <h4 data-en="Minutes before" data-he="דקות לפני">Minutes before</h4>
-          <p data-en="How early to get the reminder" data-he="כמה מוקדם לקבל תזכורת" style="font-size:12px;color:var(--text2);">How early to get the reminder</p>
-        </div>
-        <select id="remind-minutes" onchange="saveReminderSettings()" style="background:var(--surface2);border:1px solid var(--border);color:var(--text);border-radius:8px;padding:6px 10px;font-family:inherit;font-size:13px;outline:none;">
-          <option value="10">10</option>
-          <option value="15" selected>15</option>
-          <option value="20">20</option>
-          <option value="30">30</option>
-          <option value="45">45</option>
-          <option value="60">60</option>
-        </select>
-      </div>
-      <div class="section-header">
-        <h3 data-en="Exam Alerts" data-he="התראות מבחן">Exam Alerts</h3>
-      </div>
-      <div class="reminder-card">
-        <div class="r-icon">📣</div>
-        <div class="r-info">
-          <h4 data-en="Exam tomorrow alert" data-he="התראה למבחן מחר">Exam tomorrow alert</h4>
-          <p data-en="Get notified the evening before an exam" data-he="קבל התראה בערב לפני מבחן" style="font-size:12px;color:var(--text2);">Get notified the evening before an exam</p>
-        </div>
-        <label class="reminder-toggle"><input type="checkbox" id="toggle-exam-remind" onchange="saveReminderSettings()"/><span class="toggle-slider"></span></label>
-      </div>
-      <div class="reminder-card" style="margin-bottom:16px;">
-        <div class="r-icon">🌆</div>
-        <div class="r-info">
-          <h4 data-en="Evening alert time" data-he="שעת ההתראה בערב">Evening alert time</h4>
-          <p data-en="When to send the exam tomorrow notification" data-he="מתי לשלוח את ההתראה" style="font-size:12px;color:var(--text2);">When to send the exam tomorrow notification</p>
-        </div>
-        <input type="time" id="remind-evening-time" value="20:00" onchange="saveReminderSettings()" style="background:var(--surface2);border:1px solid var(--border);color:var(--text);border-radius:8px;padding:6px 10px;font-family:inherit;font-size:13px;outline:none;width:90px;" />
-      </div>
-      <div class="section-header">
-        <h3 data-en="Add Manual Reminder" data-he="הוסף תזכורת ידנית">Add Manual Reminder</h3>
-      </div>
-      <div class="reminder-card" style="flex-wrap:wrap;gap:8px;margin-bottom:16px;">
-        <div class="r-icon">✏️</div>
-        <div class="r-info">
-          <input type="text" id="manual-rem-text" placeholder="e.g. Study Math" style="background:var(--surface2);border:1px solid var(--border);color:var(--text);border-radius:8px;padding:8px 10px;font-family:inherit;font-size:13px;outline:none;width:100%;" />
-        </div>
-        <input type="datetime-local" id="manual-rem-time" style="background:var(--surface2);border:1px solid var(--border);color:var(--text);border-radius:8px;padding:8px 10px;font-family:inherit;font-size:13px;outline:none;flex:1;" />
-        <button class="btn-add" onclick="addManualReminder()" style="font-size:12px;padding:8px 14px;" data-en="+ Add" data-he="+ הוסף">+ Add</button>
-      </div>
-      <div class="section-header">
-        <h3 data-en="Scheduled" data-he="מתוזמן">Scheduled</h3>
-      </div>
-      <div id="scheduled-list"></div>
-    </div>
-  </div>
-
-<!-- TOAST -->
-<div class="notif-toast" id="notif-toast">
-  <span class="n-icon">🔔</span>
-  <span class="n-text" id="notif-text"></span>
-</div>
-
-  <!-- BOTTOM NAV -->
-  <nav class="bottom-nav">
-    <div class="bottom-nav-inner">
-      <button class="bnav-btn active" onclick="goPage('dashboard')" id="bnav-dashboard">
-        <span class="icon">📅</span>
-      </button>
-      <button class="bnav-btn" onclick="goPage('activities')" id="bnav-activities">
-        <span class="icon">🏃</span>
-      </button>
-      <button class="bnav-btn" onclick="goPage('exams')" id="bnav-exams">
-        <span class="icon">🎯</span>
-      </button>
-      <button class="bnav-btn" onclick="goPage('reminders')" id="bnav-reminders">
-        <span class="icon">🔔</span>
-      </button>
-      <button class="bnav-btn" onclick="logout()" id="bnav-logout">
-        <span class="icon">🚪</span>
-      </button>
-    </div>
-  </nav>
-</div>
-
-<!-- ACTIVITY MODAL -->
-<div class="modal-overlay" id="activity-modal">
-  <div class="modal">
-    <div class="modal-handle"></div>
-    <h3 id="activity-modal-title">Add Activity</h3>
-    <div class="form-group">
-      <label id="lbl-act-name" data-en="ACTIVITY NAME" data-he="שם הפעילות">ACTIVITY NAME</label>
-      <input type="text" id="act-name" data-en-ph="e.g. Soccer practice" data-he-ph="למשל: אימון כדורגל" placeholder="e.g. Soccer practice" />
-    </div>
-    <div class="form-group">
-      <label id="lbl-act-icon" data-en="EMOJI ICON" data-he="אייקון">EMOJI ICON</label>
-      <input type="text" id="act-icon" placeholder="⚽ 🏊 🎸 📖" />
-    </div>
-    <div class="form-group" id="days-group">
-      <label id="lbl-days" data-en="DAYS OF WEEK" data-he="ימים בשבוע">DAYS OF WEEK</label>
-      <div class="days-checkboxes" id="days-checkboxes"></div>
-    </div>
-    <div class="form-group" id="once-date-group" style="display:none">
-      <label id="lbl-date" data-en="DATE" data-he="תאריך">DATE</label>
-      <input type="date" id="act-date" />
-    </div>
-    <div class="time-row">
-      <div class="form-group">
-        <label id="lbl-start" data-en="START TIME" data-he="התחלה">START TIME</label>
-        <input type="time" id="act-start" />
-      </div>
-      <div class="form-group">
-        <label id="lbl-end" data-en="END TIME" data-he="סיום">END TIME</label>
-        <input type="time" id="act-end" />
-      </div>
-    </div>
-    <div class="form-group">
-      <label id="lbl-note" data-en="NOTE (OPTIONAL)" data-he="הערה">NOTE (OPTIONAL)</label>
-      <input type="text" id="act-note" data-en-ph="e.g. +30 min travel home" data-he-ph="למשל: +30 דקות נסיעה" placeholder="e.g. +30 min travel home" />
-    </div>
-    <div class="modal-actions">
-      <button class="btn-cancel" id="btn-cancel-act" onclick="closeModal('activity-modal')" data-en="Cancel" data-he="ביטול">Cancel</button>
-      <button class="btn-primary btn-save" onclick="saveActivity()" id="btn-save-act" data-en="Save" data-he="שמור">Save</button>
-    </div>
-  </div>
-</div>
-
-<!-- EXAM MODAL -->
-<div class="modal-overlay" id="exam-modal">
-  <div class="modal">
-    <div class="modal-handle"></div>
-    <h3 id="exam-modal-title" data-en="Add Exam / Test" data-he="הוסף מבחן / מבדק">Add Exam / Test</h3>
-    <div class="form-group">
-      <label id="lbl-subject" data-en="SUBJECT" data-he="מקצוע">SUBJECT</label>
-      <input type="text" id="exam-subject" data-en-ph="e.g. Mathematics" data-he-ph="למשל: מתמטיקה" placeholder="e.g. Mathematics" />
-    </div>
-    <div class="form-group">
-      <label id="lbl-type" data-en="TYPE" data-he="סוג">TYPE</label>
-      <select id="exam-type"></select>
-    </div>
-    <div class="form-group">
-      <label data-en="IMPORTANCE" data-he="חשיבות">IMPORTANCE</label>
-      <div style="display:flex;gap:8px;margin-top:4px;" id="importance-btns">
-        <button type="button" onclick="setImportance('low')" id="imp-low" style="flex:1;padding:8px;border-radius:8px;border:2px solid var(--accent3);background:rgba(67,233,123,.15);color:var(--accent3);font-family:inherit;font-size:13px;font-weight:700;cursor:pointer;" data-en="🟢 Low" data-he="🟢 נמוך">🟢 Low</button>
-        <button type="button" onclick="setImportance('mid')" id="imp-mid" style="flex:1;padding:8px;border-radius:8px;border:2px solid var(--border);background:transparent;color:var(--text2);font-family:inherit;font-size:13px;font-weight:700;cursor:pointer;" data-en="🟡 Medium" data-he="🟡 בינוני">🟡 Medium</button>
-        <button type="button" onclick="setImportance('high')" id="imp-high" style="flex:1;padding:8px;border-radius:8px;border:2px solid var(--border);background:transparent;color:var(--text2);font-family:inherit;font-size:13px;font-weight:700;cursor:pointer;" data-en="🔴 High" data-he="🔴 גבוה">🔴 High</button>
-      </div>
-      <input type="hidden" id="exam-importance" value="mid" />
-    </div>
-    <div class="form-group">
-      <label id="lbl-exam-date" data-en="DATE" data-he="תאריך">DATE</label>
-      <input type="date" id="exam-date" />
-    </div>
-    <div class="form-group">
-      <label id="lbl-exam-time" data-en="TIME" data-he="שעה">TIME</label>
-      <input type="time" id="exam-time" />
-    </div>
-    <div class="form-group">
-      <label id="lbl-exam-notes" data-en="NOTES / MATERIAL" data-he="חומר / הערות">NOTES / MATERIAL</label>
-      <input type="text" id="exam-notes" data-en-ph="e.g. Chapters 1–5" data-he-ph="למשל: פרקים 1-5" placeholder="e.g. Chapters 1–5" />
-    </div>
-    <div class="modal-actions">
-      <button class="btn-cancel" onclick="closeModal('exam-modal')" id="btn-cancel-exam" data-en="Cancel" data-he="ביטול">Cancel</button>
-      <button class="btn-primary btn-save" onclick="saveExam()" id="btn-save-exam" data-en="Save" data-he="שמור">Save</button>
-    </div>
-  </div>
+<div id="over" class="overlay hidden">
+  <h1 id="overTitle">נגמר הזמן!</h1>
+  <p id="overText"></p>
+  <button id="againBtn">עוד פעם</button>
 </div>
 
 <script>
-// ─── LANG ───────────────────────────────────────────
-const DAYS = {
-  en: ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'],
-  he: ['ראשון','שני','שלישי','רביעי','חמישי','שישי','שבת']
-};
-const MONTHS = {
-  en: ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'],
-  he: ['ינו','פבר','מרץ','אפר','מאי','יוני','יולי','אוג','ספט','אוק','נוב','דצמ']
-};
-const EXAM_TYPES = {
-  en: ['Exam','Quiz','Final','Test','Assignment'],
-  he: ['מבחן','מבדק','בגרות','בחינה','הגשת עבודה']
-};
-const T = {
-  en: {
-    login:'Sign In', register:'Sign Up',
-    'auth-sub':'Your smart study planner',
-    'auth-btn-login':'Sign In','auth-btn-register':'Sign Up',
-    'activity-modal-weekly':'Add Recurring Activity',
-    'activity-modal-once':'Add One-time Activity',
-    weekly:'Recurring',once:'One-time',
-    'days-left-today':'Today!','days-left-tomorrow':'Tomorrow!',
-    'days-left-past':'Past','days-left-days':' days',
-    empty_weekly:'No recurring activities yet',
-    empty_once:'No one-time activities yet',
-    empty_exams:'No exams added yet',
-    'ai-default':'Click below to get personalized recommendations',
-    'ai-no-data':'Add activities and exams first to get recommendations!',
-    'ai-loading':'🤔 Analyzing your schedule...',
-    'ai-error':'❌ Connection error. Try again.',
-    'ai-retry':'Try again','ai-refresh':'🔄 Refresh suggestions',
-    'ai-btn':'🤖 Analyze my schedule',
-    week:'Week',
-  },
-  he: {
-    login:'כניסה',register:'הרשמה',
-    'auth-sub':'מתכנן הלימודים החכם שלך',
-    'auth-btn-login':'כניסה','auth-btn-register':'הרשמה',
-    'activity-modal-weekly':'הוסף פעילות קבועה',
-    'activity-modal-once':'הוסף פעילות חד-פעמית',
-    weekly:'קבועה',once:'חד-פעמית',
-    'days-left-today':'היום!','days-left-tomorrow':'מחר!',
-    'days-left-past':'עבר','days-left-days':' ימים',
-    empty_weekly:'אין פעילויות קבועות עדיין',
-    empty_once:'אין פעילויות חד-פעמיות',
-    empty_exams:'אין מבחנים רשומים עדיין',
-    'ai-default':'לחץ למטה לקבל המלצות מותאמות אישית',
-    'ai-no-data':'הוסף פעילויות ומבחנים קודם!',
-    'ai-loading':'🤔 מנתח את הלוז שלך...',
-    'ai-error':'❌ שגיאת חיבור. נסה שוב.',
-    'ai-retry':'נסה שוב','ai-refresh':'🔄 עדכן המלצות',
-    'ai-btn':'🤖 נתח את הלוז שלי',
-    week:'שבוע',
+(() => {
+const cv = document.getElementById('c'), ctx = cv.getContext('2d');
+let W, H, S;
+function resize(){
+  const d = Math.min(devicePixelRatio || 1, 2);
+  W = innerWidth; H = innerHeight; S = Math.min(W, H);
+  cv.width = W * d; cv.height = H * d;
+  ctx.setTransform(d, 0, 0, d, 0, 0);
+}
+addEventListener('resize', resize); resize();
+
+const $ = id => document.getElementById(id);
+const rand = (a, b) => a + Math.random() * (b - a);
+const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
+
+/* ---------- sound ---------- */
+let ac = null;
+function audio(){ if(!ac){ try{ ac = new (window.AudioContext||window.webkitAudioContext)(); }catch(e){} } if(ac && ac.state==='suspended') ac.resume(); }
+function sfx(type){
+  if(!ac) return;
+  const t = ac.currentTime;
+  const g = ac.createGain(); g.connect(ac.destination);
+  const o = ac.createOscillator();
+  if(type==='hit'){ o.type='sine'; o.frequency.setValueAtTime(rand(150,190),t); o.frequency.exponentialRampToValueAtTime(45,t+.18); g.gain.setValueAtTime(.7,t); g.gain.exponentialRampToValueAtTime(.001,t+.22); }
+  else if(type==='block'){ o.type='square'; o.frequency.setValueAtTime(320,t); o.frequency.exponentialRampToValueAtTime(120,t+.08); g.gain.setValueAtTime(.18,t); g.gain.exponentialRampToValueAtTime(.001,t+.1); }
+  else if(type==='swoosh'){ o.type='triangle'; o.frequency.setValueAtTime(600,t); o.frequency.exponentialRampToValueAtTime(200,t+.12); g.gain.setValueAtTime(.05,t); g.gain.exponentialRampToValueAtTime(.001,t+.12); }
+  else if(type==='bell'){ o.type='sine'; o.frequency.setValueAtTime(1250,t); g.gain.setValueAtTime(.35,t); g.gain.exponentialRampToValueAtTime(.001,t+1.2); }
+  o.connect(g); o.start(t); o.stop(t+1.3);
+  if(type==='hit'){ // noise smack
+    const len = ac.sampleRate*.08, b = ac.createBuffer(1,len,ac.sampleRate), d=b.getChannelData(0);
+    for(let i=0;i<len;i++) d[i]=(Math.random()*2-1)*(1-i/len);
+    const n = ac.createBufferSource(), ng = ac.createGain(); n.buffer=b; ng.gain.value=.5; n.connect(ng); ng.connect(ac.destination); n.start(t);
   }
-};
-
-let lang = 'en';
-
-function setLang(l) {
-  lang = l;
-  document.querySelectorAll('.lang-btn').forEach(b => b.classList.toggle('active', b.textContent.toLowerCase().includes(l === 'en' ? 'en' : 'ע')));
-  document.documentElement.lang = l;
-  document.documentElement.dir = l === 'he' ? 'rtl' : 'ltr';
-  document.body.classList.toggle('rtl', l === 'he');
-
-  // Update all data-en / data-he text content
-  document.querySelectorAll('[data-en]').forEach(el => {
-    const val = el.getAttribute('data-'+l);
-    if(val) el.textContent = val;
-  });
-  // Placeholders
-  document.querySelectorAll('[data-en-ph]').forEach(el => {
-    const val = el.getAttribute('data-'+l+'-ph');
-    if(val) el.placeholder = val;
-  });
-  // Exam type select
-  const sel = document.getElementById('exam-type');
-  if(sel) { const cur=sel.value; sel.innerHTML = EXAM_TYPES[l].map(t=>`<option>${t}</option>`).join(''); }
-  // Auth button
-  document.getElementById('auth-btn').textContent = T[l][authMode === 'login' ? 'auth-btn-login' : 'auth-btn-register'];
-  // Days checkboxes
-  buildDaysCheckboxes();
-  // Re-render
-  renderAll();
 }
 
-// ─── STATE ──────────────────────────────────────────
-let currentUser = null;
-let authMode = 'login';
-let currentActivityType = 'weekly';
+/* ---------- game state ---------- */
+let G;
+function newOpp(round){
+  return { x:0, vx:0, tx:0, moveT:0, kx:0, ky:0, kvx:0, kvy:0, rot:0, rotv:0,
+           hurt:0, block:0, blockCD:rand(1.5,3), hp:100, ko:0, bruises:[], round,
+           speed: 1 + (round-1)*0.35 };
+}
+function newGame(){
+  G = { running:true, round:1, score:0, combo:0, comboT:0, time:30, shake:0, over:false,
+        opp:newOpp(1), parts:[], texts:[], koT:0,
+        hands:[ {side:-1, t:-1, tx:0, ty:0, done:false, kind:'jab'}, {side:1, t:-1, tx:0, ty:0, done:false, kind:'jab'} ] };
+  updHud();
+}
+const best = () => +localStorage.getItem('punchBest') || 0;
+$('best').textContent = best() ? 'שיא: ' + best() : '';
 
-function getStore(k){try{return JSON.parse(localStorage.getItem(k))||null;}catch{return null;}}
-function setStore(k,v){localStorage.setItem(k,JSON.stringify(v));}
-function getUserData(){return getStore('sf2_'+currentUser)||{activities:[],exams:[]};}
-function saveUserData(d){setStore('sf2_'+currentUser,d);}
-
-// ─── AUTH ────────────────────────────────────────────
-function switchTab(mode){
-  authMode=mode;
-  document.getElementById('tab-login').classList.toggle('active',mode==='login');
-  document.getElementById('tab-register').classList.toggle('active',mode==='register');
-  document.getElementById('auth-name-group').style.display=mode==='register'?'block':'none';
-  document.getElementById('auth-btn').textContent=T[lang][mode==='login'?'auth-btn-login':'auth-btn-register'];
-  document.getElementById('auth-error').textContent='';
+function head(){
+  const o = G.opp, r = S*0.16;
+  return { x: W/2 + o.x*Math.min(W*0.28, S*0.5) + o.kx, y: H*0.40 + o.ky, r };
 }
 
-function handleAuth(){
-  const username=document.getElementById('auth-username').value.trim();
-  const password=document.getElementById('auth-password').value;
-  const err=document.getElementById('auth-error');
-  if(!username||!password){err.textContent=lang==='he'?'נא למלא שם משתמש וסיסמה':'Please fill in all fields';return;}
-  const users=getStore('sf2_users')||{};
-  if(authMode==='register'){
-    if(users[username]){err.textContent=lang==='he'?'שם משתמש כבר קיים':'Username already exists';return;}
-    const fullname=document.getElementById('auth-fullname').value.trim()||username;
-    users[username]={password,fullname};
-    setStore('sf2_users',users);
-    currentUser=username;
-    document.getElementById('user-pill').textContent=(lang==='he'?'👋 שלום, ':'👋 Hi, ')+fullname+'!';
-  } else {
-    if(!users[username]||users[username].password!==password){
-      err.textContent=lang==='he'?'שם משתמש או סיסמה שגויים':'Wrong username or password';return;
-    }
-    currentUser=username;
-    document.getElementById('user-pill').textContent=(lang==='he'?'👋 שלום, ':'👋 Hi, ')+users[username].fullname+'!';
-  }
-  // Save session
-  setStore('sf2_session', username);
-  loginSuccess();
+/* ---------- input ---------- */
+const PUNCH = 0.30, HITAT = 0.38;
+function punch(side, tx, ty, kind='jab'){
+  if(!G || !G.running) return;
+  const h = G.hands[side<0?0:1];
+  if(h.t >= 0 && h.t < PUNCH*0.75) return;
+  h.t = 0; h.done = false; h.kind = kind;
+  if(tx == null){ const hd = head(); tx = W/2 + side*S*0.06; ty = kind==='upper' ? hd.y + hd.r*0.55 : hd.y + hd.r*0.1; }
+  h.tx = tx; h.ty = ty;
+  sfx('swoosh');
 }
-
-function loginSuccess(){
-  document.getElementById('auth-screen').style.display='none';
-  document.getElementById('app').style.display='flex';
-  resetAI();
-  renderAll();
-  loadReminderUI();
-  scheduleAllReminders();
-  checkExamTomorrow();
-  setTimeout(checkActivityGreeting, 1000);
-}
-
-function logout(){
-  currentUser=null;
-  localStorage.removeItem('sf2_session');
-  document.getElementById('auth-screen').style.display='flex';
-  document.getElementById('app').style.display='none';
-  document.getElementById('auth-username').value='';
-  document.getElementById('auth-password').value='';
-  document.getElementById('auth-error').textContent='';
-  resetAI();
-}
-
-function resetAI(){
-  document.getElementById('ai-content').innerHTML=
-    `<p class="ai-loading">${T[lang]['ai-default']}</p>`+
-    `<button class="btn-ai" onclick="getAISuggestions()">${T[lang]['ai-btn']}</button>`;
-}
-
-// ─── NAVIGATION ─────────────────────────────────────
-function goPage(name){
-  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
-  document.querySelectorAll('.nav-btn,.bnav-btn').forEach(b=>b.classList.remove('active'));
-  document.getElementById('page-'+name).classList.add('active');
-  document.getElementById('nav-'+name)?.classList.add('active');
-  document.getElementById('bnav-'+name)?.classList.add('active');
-  if(name==='dashboard') renderWeekGrid();
-  if(name==='reminders') { loadReminderUI(); }
-}
-
-// ─── RENDER ──────────────────────────────────────────
-function renderAll(){ renderWeekGrid(); renderActivities(); renderExams(); }
-
-function renderWeekGrid(){
-  const data=getUserData();
-  const today=new Date();
-  const todayDay=today.getDay();
-  const sunday=new Date(today); sunday.setDate(today.getDate()-todayDay);
-  const grid=document.getElementById('week-grid');
-  if(!grid)return;
-  grid.innerHTML='';
-  for(let i=0;i<7;i++){
-    const d=new Date(sunday); d.setDate(sunday.getDate()+i);
-    const isToday=d.toDateString()===today.toDateString();
-    const col=document.createElement('div'); col.className='day-col';
-    const dateStr=`${d.getDate()}/${d.getMonth()+1}`;
-    col.innerHTML=`<div class="day-header ${isToday?'today':''}">${DAYS[lang][i]}<br><small>${dateStr}</small></div><div class="day-body" id="day-body-${i}"></div>`;
-    grid.appendChild(col);
-  }
-  data.activities.forEach(act=>{
-    if(act.type==='weekly'){
-      (act.days||[]).forEach(di=>{
-        const body=document.getElementById('day-body-'+di);
-        if(body){const el=document.createElement('div');el.className='day-event event-busy';el.textContent=`${act.icon||'📌'} ${act.name}${act.start?' '+act.start:''}`;body.appendChild(el);}
-      });
-    } else if(act.type==='once'&&act.date){
-      const ad=new Date(act.date);const di=ad.getDay();
-      const as=new Date(ad);as.setDate(ad.getDate()-di);
-      if(as.toDateString()===sunday.toDateString()){
-        const body=document.getElementById('day-body-'+di);
-        if(body){const el=document.createElement('div');el.className='day-event event-busy';el.textContent=`${act.icon||'📌'} ${act.name}`;body.appendChild(el);}
-      }
-    }
-  });
-  data.exams.forEach(exam=>{
-    if(!exam.date)return;
-    const ed=new Date(exam.date);
-    const es=new Date(ed);es.setDate(ed.getDate()-ed.getDay());
-    if(es.toDateString()===sunday.toDateString()){
-      const body=document.getElementById('day-body-'+ed.getDay());
-      if(body){const el=document.createElement('div');el.className='day-event event-exam';el.textContent=`🎯 ${exam.subject}`;body.appendChild(el);}
-    }
-  });
-}
-
-function buildDaysCheckboxes(){
-  const c=document.getElementById('days-checkboxes');
-  if(!c)return;
-  const checked=Array.from(c.querySelectorAll('input:checked')).map(i=>i.value);
-  c.innerHTML=DAYS[lang].slice(0,6).map((d,i)=>
-    `<label class="day-check"><input type="checkbox" value="${i}" ${checked.includes(String(i))?'checked':''}/><span>${d}</span></label>`
-  ).join('');
-}
-
-function renderActivities(){
-  const data=getUserData();
-  const wl=document.getElementById('weekly-list');
-  const ol=document.getElementById('once-list');
-  if(!wl||!ol)return;
-  wl.innerHTML=''; ol.innerHTML='';
-  const weekly=data.activities.filter(a=>a.type==='weekly');
-  const once=data.activities.filter(a=>a.type==='once');
-  if(!weekly.length){ wl.innerHTML=`<div class="empty-state"><div class="big">🏃</div><p>${T[lang].empty_weekly}</p></div>`; }
-  else weekly.forEach(act=>{
-    const days=(act.days||[]).map(d=>DAYS[lang][d]).join(', ');
-    const idx=data.activities.indexOf(act);
-    wl.innerHTML+=`<div class="activity-card"><div class="activity-icon">${act.icon||'📌'}</div><div class="activity-info"><h4>${act.name}</h4><p>${days}${act.start?' · '+act.start:''}${act.end?'–'+act.end:''}${act.note?' · '+act.note:''}</p></div><span class="activity-badge weekly">${T[lang].weekly}</span><button class="delete-btn" onclick="deleteActivity(${idx})">✕</button></div>`;
-  });
-  if(!once.length){ ol.innerHTML=`<div class="empty-state"><div class="big">📅</div><p>${T[lang].empty_once}</p></div>`; }
-  else once.forEach(act=>{
-    const idx=data.activities.indexOf(act);
-    ol.innerHTML+=`<div class="activity-card"><div class="activity-icon">${act.icon||'📌'}</div><div class="activity-info"><h4>${act.name}</h4><p>${act.date||''}${act.start?' · '+act.start:''}${act.end?'–'+act.end:''}${act.note?' · '+act.note:''}</p></div><span class="activity-badge once">${T[lang].once}</span><button class="delete-btn" onclick="deleteActivity(${idx})">✕</button></div>`;
-  });
-}
-
-function openAddActivity(type){
-  currentActivityType=type;
-  document.getElementById('activity-modal-title').textContent=T[lang]['activity-modal-'+type];
-  document.getElementById('days-group').style.display=type==='weekly'?'block':'none';
-  document.getElementById('once-date-group').style.display=type==='once'?'block':'none';
-  buildDaysCheckboxes();
-  ['act-name','act-icon','act-start','act-end','act-note'].forEach(id=>document.getElementById(id).value='');
-  document.getElementById('activity-modal').classList.add('open');
-}
-
-function saveActivity(){
-  const name=document.getElementById('act-name').value.trim();
-  if(!name)return;
-  const data=getUserData();
-  const act={type:currentActivityType,name,icon:document.getElementById('act-icon').value.trim(),start:document.getElementById('act-start').value,end:document.getElementById('act-end').value,note:document.getElementById('act-note').value.trim()};
-  if(currentActivityType==='weekly') act.days=Array.from(document.querySelectorAll('.days-checkboxes input:checked')).map(c=>parseInt(c.value));
-  else act.date=document.getElementById('act-date').value;
-  data.activities.push(act);
-  saveUserData(data);
-  closeModal('activity-modal');
-  renderAll();
-}
-
-function deleteActivity(idx){
-  const data=getUserData(); data.activities.splice(idx,1); saveUserData(data); renderAll();
-}
-
-function setImportance(level) {
-  document.getElementById('exam-importance').value = level;
-  const colors = { low: 'var(--accent3)', mid: 'var(--accent4)', high: 'var(--accent2)' };
-  const ids = ['low','mid','high'];
-  ids.forEach(id => {
-    const btn = document.getElementById('imp-'+id);
-    if(id === level) {
-      btn.style.borderColor = colors[id];
-      btn.style.background = colors[id].replace('var(','rgba(').replace(')',', .15)');
-      btn.style.color = colors[id];
-    } else {
-      btn.style.borderColor = 'var(--border)';
-      btn.style.background = 'transparent';
-      btn.style.color = 'var(--text2)';
-    }
-  });
-}
-
-// ─── GRADE & STUDY HOURS ─────────────────────────────
-const GRADE_HOURS = {
-  2:1, 3:1.5, 4:1.5, 5:2, 6:2, 7:2.5,
-  8:3, 9:3, 10:3, 11:3.5, 12:3.5
-};
-const GRADE_NAMES = {
-  2:'ב', 3:'ג', 4:'ד', 5:'ה', 6:'ו', 7:'ז',
-  8:'ח', 9:'ט', 10:'י', 11:'יא', 12:'יב'
-};
-
-function getGrade(){ return parseInt(getStore('sf2_grade_'+currentUser)||7); }
-function setGrade(g){ setStore('sf2_grade_'+currentUser, g); }
-
-function getTargetHours(exam){
-  const grade = getGrade();
-  let base = GRADE_HOURS[grade] || 2.5;
-
-  // Type modifier
-  const type = exam.type||'';
-  if(type==='בוחן'||type==='Quiz') base *= 0.6;
-  else if(type==='בגרות'||type==='Final') base *= 1.6;
-
-  // Importance modifier
-  const imp = exam.importance||'mid';
-  if(imp==='low') base *= 0.7;
-  else if(imp==='high') base *= 1.4;
-
-  // Heavy subject
-  const subjectLower = (exam.subject||'').toLowerCase();
-  const isHeavy = HEAVY_SUBJECTS.some(s => subjectLower.includes(s.toLowerCase()));
-  if(isHeavy) base += 0.5;
-
-  return Math.round(base * 2) / 2; // round to nearest 0.5
-}
-
-function getStudyHours(examId){
-  const d = getUserData();
-  return (d.studyLog && d.studyLog[examId]) || 0;
-}
-
-function addStudyHours(examId, hours){
-  const d = getUserData();
-  if(!d.studyLog) d.studyLog = {};
-  d.studyLog[examId] = (d.studyLog[examId]||0) + hours;
-  saveUserData(d);
-  renderExams();
-  showToast((lang==='he'?'נוספו ':'Added ')+hours+(lang==='he'?' שעות לימוד 📖':' study hours 📖'));
-}
-
-function resetStudy(examId){
-  const d=getUserData();
-  if(!d.studyLog) d.studyLog={};
-  d.studyLog[examId]=0;
-  saveUserData(d);
-  renderExams();
-}
-
-function renderExams(){
-  const data=getUserData();
-  const list=document.getElementById('exam-list');
-  if(!list)return;
-  list.innerHTML='';
-
-  // Grade selector at top
-  const grade = getGrade();
-  list.innerHTML = `<div style="background:var(--surface2);border:1px solid var(--border);border-radius:12px;padding:12px 16px;margin-bottom:16px;display:flex;align-items:center;gap:12px;">
-    <span style="font-size:20px">🎓</span>
-    <div style="flex:1">
-      <div style="font-size:13px;font-weight:700;margin-bottom:4px">${lang==='he'?'הכיתה שלי':'My Grade'}</div>
-      <select onchange="setGrade(this.value);renderExams()" style="background:var(--surface);border:1px solid var(--border);color:var(--text);border-radius:8px;padding:5px 10px;font-family:inherit;font-size:13px;outline:none;">
-        ${[2,3,4,5,6,7,8,9,10,11,12].map(g=>`<option value="${g}" ${g==grade?'selected':''}>${lang==='he'?'כיתה '+GRADE_NAMES[g]:'Grade '+g}</option>`).join('')}
-      </select>
-    </div>
-    <div style="font-size:12px;color:var(--text2)">${lang==='he'?'זמן מומלץ':'Recommended'}<br><strong style="color:var(--accent)">${GRADE_HOURS[grade]||2.5}${lang==='he'?' שעות':' hrs'}</strong></div>
-  </div>`;
-
-  const today=new Date(); today.setHours(0,0,0,0);
-  const sorted=[...data.exams].sort((a,b)=>new Date(a.date)-new Date(b.date));
-  if(!sorted.length){ list.innerHTML+=`<div class="empty-state"><div class="big">🎯</div><p>${T[lang].empty_exams}</p></div>`; return; }
-
-  sorted.forEach(exam=>{
-    const idx=data.exams.indexOf(exam);
-    const ed=new Date(exam.date); ed.setHours(0,0,0,0);
-    const diff=Math.round((ed-today)/86400000);
-    let cls='ok',txt=diff+T[lang]['days-left-days'];
-    if(diff<0){txt=T[lang]['days-left-past'];cls='urgent';}
-    else if(diff===0){txt=T[lang]['days-left-today'];cls='urgent';}
-    else if(diff===1){txt=T[lang]['days-left-tomorrow'];cls='urgent';}
-    else if(diff<=3)cls='urgent';
-    else if(diff<=7)cls='soon';
-
-    const examId = exam.date+'_'+exam.subject;
-    const studied = getStudyHours(examId);
-    const target = getTargetHours(exam);
-    const pct = Math.min(100, Math.round((studied/target)*100));
-    const barColor = pct>=100?'var(--accent3)':pct>=50?'var(--accent4)':'var(--accent2)';
-    const notEnough = diff<=0 && studied < target;
-    const impIcon = exam.importance==='low'?'🟢':exam.importance==='high'?'🔴':'🟡';
-    const impColors = {low:'var(--accent3)',mid:'var(--accent4)',high:'var(--accent2)'};
-    const impColor = impColors[exam.importance||'mid'];
-
-    list.innerHTML+=`
-    <div class="exam-card" style="flex-direction:column;align-items:stretch;gap:10px;${notEnough?'border-color:var(--accent2)':''}">
-      <div style="display:flex;align-items:center;gap:14px;">
-        <div class="exam-date-box"><div class="day-num">${ed.getDate()}</div><div class="month">${MONTHS[lang][ed.getMonth()]}</div></div>
-        <div class="exam-info">
-          <h4>${exam.subject} – ${exam.type} <span style="font-size:11px;padding:2px 7px;border-radius:10px;background:${impColor}22;color:${impColor};font-weight:700;">${impIcon} ${lang==='he'?{low:'נמוך',mid:'בינוני',high:'גבוה'}[exam.importance||'mid']:{low:'Low',mid:'Medium',high:'High'}[exam.importance||'mid']}</span></h4>
-          <p>${exam.time||''}${exam.notes?' · '+exam.notes:''}</p>
-          ${notEnough?`<p style="color:var(--accent2);font-size:11px;font-weight:700">⚠️ ${lang==='he'?'לא למדת מספיק!':'Not enough study!'}</p>`:''}
-        </div>
-        <span class="days-left ${cls}">${txt}</span>
-        <button class="delete-btn" onclick="deleteExam(${idx})">✕</button>
-      </div>
-      <div>
-        <div style="display:flex;justify-content:space-between;font-size:12px;color:var(--text2);margin-bottom:5px;">
-          <span>📖 ${lang==='he'?'למדתי':'Studied'}: <strong style="color:var(--text)">${studied}/${target} ${lang==='he'?'שעות':'hrs'}</strong></span>
-          <span style="color:${barColor};font-weight:700">${pct}%</span>
-        </div>
-        <div style="height:6px;background:var(--surface2);border-radius:3px;overflow:hidden;margin-bottom:8px;">
-          <div style="height:100%;width:${pct}%;background:${barColor};border-radius:3px;transition:width .3s;"></div>
-        </div>
-        <div style="display:flex;gap:6px;flex-wrap:wrap;">
-          ${[0.5,1,1.5,2].map(h=>`<button onclick="addStudyHours('${examId}',${h})" style="padding:5px 10px;border-radius:8px;border:1px solid var(--border);background:var(--surface2);color:var(--text);font-size:12px;font-weight:700;font-family:inherit;cursor:pointer;">+${h}h</button>`).join('')}
-          ${studied>0?`<button onclick="resetStudy('${examId}')" style="padding:5px 10px;border-radius:8px;border:1px solid var(--border);background:transparent;color:var(--text3);font-size:11px;font-family:inherit;cursor:pointer;">${lang==='he'?'איפוס':'Reset'}</button>`:''}
-        </div>
-      </div>
-    </div>`;
-  });
-}
-
-function openAddExam(){
-  ['exam-subject','exam-time','exam-notes'].forEach(id=>document.getElementById(id).value='');
-  document.getElementById('exam-date').value='';
-  const sel=document.getElementById('exam-type');
-  sel.innerHTML=EXAM_TYPES[lang].map(t=>`<option>${t}</option>`).join('');
-  setImportance('mid');
-  document.getElementById('exam-modal').classList.add('open');
-}
-
-function saveExam(){
-  const subject=document.getElementById('exam-subject').value.trim();
-  const date=document.getElementById('exam-date').value;
-  if(!subject||!date)return;
-  const data=getUserData();
-  data.exams.push({
-    subject,
-    type:document.getElementById('exam-type').value,
-    importance:document.getElementById('exam-importance').value,
-    date,
-    time:document.getElementById('exam-time').value,
-    notes:document.getElementById('exam-notes').value.trim()
-  });
-  saveUserData(data);
-  closeModal('exam-modal');
-  renderExams();
-}
-
-function deleteExam(idx){
-  const data=getUserData(); data.exams.splice(idx,1); saveUserData(data); renderExams();
-}
-
-function closeModal(id){document.getElementById(id).classList.remove('open');}
-document.querySelectorAll('.modal-overlay').forEach(m=>{
-  m.addEventListener('click',e=>{if(e.target===m)m.classList.remove('open');});
+cv.addEventListener('pointerdown', e => {
+  audio();
+  const side = e.clientX < W/2 ? -1 : 1;
+  punch(side, e.clientX, e.clientY);
+});
+addEventListener('keydown', e => {
+  if(e.repeat) return;
+  audio();
+  const k = e.key.toLowerCase();
+  if(k==='a' || k==='arrowleft' || k==='ש') punch(-1);
+  else if(k==='d' || k==='arrowright' || k==='ג') punch(1);
+  else if(k===' '){ e.preventDefault(); const h = G && G.hands; if(h) punch(h[0].t<0||h[0].t>h[1].t ? -1 : 1, null, null, 'upper'); }
 });
 
-// ─── AI ──────────────────────────────────────────────
-async function getAISuggestions(){
-  const data=getUserData();
-  const contentEl=document.getElementById('ai-content');
-  if(!data.activities.length&&!data.exams.length){
-    contentEl.innerHTML=`<p class="ai-loading">${T[lang]['ai-no-data']}</p><button class="btn-ai" onclick="getAISuggestions()">${T[lang]['ai-btn']}</button>`;
+/* ---------- hit resolution ---------- */
+const WORDS = ['פאו!','בום!','באם!','טראח!','וואם!','קראק!','בנג!'];
+function resolve(h){
+  const o = G.opp, hd = head();
+  const dx = (h.tx - hd.x)/(hd.r*0.95), dy = (h.ty - hd.y)/(hd.r*1.15);
+  const onHead = dx*dx + dy*dy < 1 && !o.ko;
+  if(!onHead){
+    G.combo = 0; addText('פספוס', h.tx, h.ty, '#ccc', 0.8);
     return;
   }
-  contentEl.innerHTML=`<p class="ai-loading">${T[lang]['ai-loading']}</p>`;
-  const today=new Date();
-  const actsDesc=data.activities.map(a=>{
-    if(a.type==='weekly'){
-      const days=(a.days||[]).map(d=>DAYS['en'][d]).join(', ');
-      return `- ${a.name}: days ${days}, ${a.start||'?'}–${a.end||'?'}${a.note?' ('+a.note+')':''}`;
-    }
-    return `- ${a.name}: date ${a.date}, ${a.start||'?'}–${a.end||'?'}`;
-  }).join('\n');
-  const examsDesc=data.exams.map(e=>{
-    const diff=Math.round((new Date(e.date)-today)/86400000);
-    return `- ${e.subject} (${e.type}): ${e.date}, in ${diff} days. Material: ${e.notes||'not specified'}`;
-  }).join('\n');
-  const isHe=lang==='he';
-  const prompt=`You are a smart study planning assistant for a student.
-The student's schedule:
-Busy activities:
-${actsDesc||'none'}
-Upcoming exams:
-${examsDesc||'none'}
-Today: ${today.toDateString()}
-
-Give 3–4 specific, practical study recommendations:
-1. Best times to study for each exam (specific days/hours)
-2. How much time per subject
-3. Priority order by urgency
-4. One time-management tip
-
-${isHe?'Respond in Hebrew.':'Respond in English.'} Be concise. Start each recommendation on a new line with "•".`;
-  try{
-    const res=await fetch("https://api.anthropic.com/v1/messages",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({model:"claude-sonnet-4-20250514",max_tokens:1000,messages:[{role:"user",content:prompt}]})});
-    const result=await res.json();
-    const text=result.content?.[0]?.text||'No response.';
-    const lines=text.split('\n').filter(l=>l.trim());
-    contentEl.innerHTML=lines.map(line=>{
-      if(line.startsWith('•')||line.startsWith('-'))
-        return `<div class="ai-suggestion"><div class="ai-dot"></div><div><p>${line.replace(/^[•\-]\s*/,'')}</p></div></div>`;
-      return `<div style="font-size:12px;color:var(--text2);padding:4px 0">${line}</div>`;
-    }).join('')+`<button class="btn-ai" onclick="getAISuggestions()" style="margin-top:12px">${T[lang]['ai-refresh']}</button>`;
-  } catch{
-    contentEl.innerHTML=`<p class="ai-loading">${T[lang]['ai-error']}</p><button class="btn-ai" onclick="getAISuggestions()">${T[lang]['ai-retry']}</button>`;
-  }
-}
-
-// ─── REMINDERS ───────────────────────────────────────
-let reminderTimers = [];
-
-function getReminderSettings() {
-  return getStore('sf2_reminders_' + currentUser) || {
-    studyRemind: false, studyMins: 15,
-    examRemind: false, eveningTime: '20:00',
-    manualReminders: []
-  };
-}
-function saveReminderSettings() {
-  const s = {
-    studyRemind: document.getElementById('toggle-study-remind')?.checked || false,
-    studyMins: parseInt(document.getElementById('remind-minutes')?.value || 15),
-    examRemind: document.getElementById('toggle-exam-remind')?.checked || false,
-    eveningTime: document.getElementById('remind-evening-time')?.value || '20:00',
-    manualReminders: getReminderSettings().manualReminders
-  };
-  setStore('sf2_reminders_' + currentUser, s);
-  scheduleAllReminders();
-}
-
-function loadReminderUI() {
-  const s = getReminderSettings();
-  const tog1 = document.getElementById('toggle-study-remind');
-  const tog2 = document.getElementById('toggle-exam-remind');
-  const mins = document.getElementById('remind-minutes');
-  const eve = document.getElementById('remind-evening-time');
-  if(tog1) tog1.checked = s.studyRemind;
-  if(tog2) tog2.checked = s.examRemind;
-  if(mins) mins.value = s.studyMins;
-  if(eve) eve.value = s.eveningTime;
-  updatePermStatus();
-  renderScheduled();
-  checkExamTomorrow();
-}
-
-function updatePermStatus() {
-  const el = document.getElementById('perm-status');
-  const btn = document.getElementById('perm-btn');
-  if (!('Notification' in window)) {
-    if(el) el.textContent = lang==='he' ? 'הדפדפן לא תומך בהתראות' : 'Browser does not support notifications';
-    if(btn) btn.style.display='none';
+  // blocking: the gloves cover the middle of the face
+  if(o.block > 0 && Math.abs(dx) < 0.75 && dy > -0.6){
+    sfx('block'); G.combo = 0; o.kvx += h.side*S*0.4; o.blockShake = 0.2;
+    addText('חסום!', h.tx, h.ty, '#8fd3ff', 0.9); burst(h.tx, h.ty, '#8fd3ff', 6);
     return;
   }
-  const p = Notification.permission;
-  if(el) el.textContent = p === 'granted' ? (lang==='he'?'✅ מופעל':'✅ Enabled') : p === 'denied' ? (lang==='he'?'❌ חסום בהגדרות':'❌ Blocked in settings') : (lang==='he'?'⚠️ לא הוגדר':'⚠️ Not set');
-  if(btn) btn.style.display = p === 'granted' ? 'none' : 'flex';
+  const upper = h.kind === 'upper';
+  G.combo++; G.comboT = 1.3;
+  const dmg = (upper ? 13 : 7) + Math.min(G.combo, 8) * 0.6;
+  o.hp = Math.max(0, o.hp - dmg);
+  G.score += Math.round((upper ? 25 : 10) * (1 + (G.combo-1)*0.25) * G.round);
+  o.kvx += h.side * S * (upper ? 1.2 : 3.2);
+  o.kvy += upper ? -S*4 : -S*0.8;
+  o.rotv += h.side * (upper ? 1.5 : 6) + (upper ? 0 : dx*2);
+  if(upper) o.rotv -= 0; o.tilt = upper ? 1 : 0;
+  o.hurt = 0.4; o.blockCD = Math.max(o.blockCD, 0.4);
+  if(o.bruises.length < 14) o.bruises.push({ x:dx*0.8, y:dy*0.8, s:rand(0.14,0.22), a:0 });
+  else { const b = o.bruises[Math.floor(Math.random()*o.bruises.length)]; b.s = Math.min(b.s+0.03, 0.3); }
+  G.shake = upper ? 16 : 9;
+  sfx('hit'); burst(h.tx, h.ty, '#ffd23b', upper ? 18 : 11);
+  addText(WORDS[Math.floor(Math.random()*WORDS.length)], h.tx, h.ty - 20, '#fff', upper ? 1.5 : 1.1);
+  if(G.combo >= 3) addText('x' + G.combo + ' רצף!', W/2, H*0.16, '#ffd23b', 1);
+  if(o.hp <= 0){ o.ko = 1; G.koT = 0; sfx('bell'); G.score += Math.round(G.time*15); addText('נוק-אאוט!', W/2, H*0.25, '#ff3b3b', 2.6, 2.5); }
+  updHud();
+}
+function burst(x, y, c, n){
+  for(let i=0;i<n;i++){ const a = rand(0, Math.PI*2), sp = rand(S*0.4, S*1.3);
+    G.parts.push({ x, y, vx:Math.cos(a)*sp, vy:Math.sin(a)*sp, life:rand(.25,.5), max:.5, c, star:Math.random()<.4 }); }
+}
+function addText(t, x, y, c, size=1, life=0.8){ G.texts.push({ t, x, y, c, size, life, max:life }); }
+
+function updHud(){
+  $('round').textContent = G.round; $('score').textContent = G.score;
+  $('time').textContent = Math.ceil(G.time); $('hp').style.width = G.opp.hp + '%';
+  $('combo').textContent = G.combo >= 2 ? '×' + G.combo : '';
 }
 
-async function requestNotifPerm() {
-  if (!('Notification' in window)) return;
-  await Notification.requestPermission();
-  updatePermStatus();
-  scheduleAllReminders();
-}
-
-function showToast(text, icon='🔔') {
-  const t = document.getElementById('notif-toast');
-  document.getElementById('notif-text').textContent = text;
-  t.querySelector('.n-icon').textContent = icon;
-  t.classList.add('show');
-  setTimeout(() => t.classList.remove('show'), 4000);
-}
-
-function sendNotification(title, body, icon='📚') {
-  showToast(title + (body ? ' – ' + body : ''));
-  if (Notification.permission === 'granted') {
-    try { new Notification(title, { body, icon: '📚' }); } catch(e) {}
+/* ---------- update ---------- */
+function update(dt){
+  const o = G.opp;
+  if(G.running && !o.ko){
+    G.time -= dt;
+    if(G.time <= 0){ G.time = 0; endGame(); }
   }
-  // Beep using Web Audio
-  try {
-    const ctx = new (window.AudioContext || window.webkitAudioContext)();
-    const osc = ctx.createOscillator();
-    const gain = ctx.createGain();
-    osc.connect(gain); gain.connect(ctx.destination);
-    osc.type = 'sine'; osc.frequency.value = 880;
-    gain.gain.setValueAtTime(0.3, ctx.currentTime);
-    gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.6);
-    osc.start(ctx.currentTime); osc.stop(ctx.currentTime + 0.6);
-    setTimeout(() => {
-      const o2 = ctx.createOscillator(); const g2 = ctx.createGain();
-      o2.connect(g2); g2.connect(ctx.destination);
-      o2.type='sine'; o2.frequency.value=1100;
-      g2.gain.setValueAtTime(0.3, ctx.currentTime);
-      g2.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime+0.5);
-      o2.start(ctx.currentTime); o2.stop(ctx.currentTime+0.5);
-    }, 300);
-  } catch(e) {}
+  if(G.comboT > 0 && (G.comboT -= dt) <= 0) G.combo = 0;
+
+  // AI movement (dodging side to side)
+  if(!o.ko){
+    if((o.moveT -= dt) <= 0){ o.tx = rand(-1, 1); o.moveT = rand(0.5, 1.4) / o.speed; }
+    o.vx += ((o.tx - o.x) * 18 * o.speed - o.vx * 7) * dt;
+    o.x += o.vx * dt;
+    // blocking
+    if(o.block > 0){ o.block -= dt; if(o.block <= 0) o.blockCD = rand(1.2, 3) / o.speed; }
+    else if((o.blockCD -= dt) <= 0 && o.hurt <= 0){ o.block = rand(0.6, 1.1) * (0.8 + o.speed*0.2); }
+    if(G.combo >= 4 && o.block <= 0 && Math.random() < dt*1.5*o.speed) o.block = 0.8;
+  } else {
+    G.koT += dt;
+    o.x += (0 - o.x) * dt * 2;
+    if(G.koT > 2.6 && G.running) nextRound();
+  }
+  // knockback springs
+  o.kvx += (-o.kx * 140 - o.kvx * 11) * dt;  o.kx += o.kvx * dt;
+  o.kvy += (-o.ky * 140 - o.kvy * 11) * dt;  o.ky += o.kvy * dt;
+  const rotTarget = o.ko ? 0.5 : 0;
+  o.rotv += ((rotTarget - o.rot) * 120 - o.rotv * 10) * dt; o.rot += o.rotv * dt;
+  o.hurt = Math.max(0, o.hurt - dt);
+  o.blockShake = Math.max(0, (o.blockShake||0) - dt);
+  o.tilt = Math.max(0, (o.tilt||0) - dt*2.5);
+
+  for(const h of G.hands){
+    if(h.t < 0) continue;
+    h.t += dt;
+    if(!h.done && h.t >= PUNCH*HITAT){ h.done = true; resolve(h); }
+    if(h.t >= PUNCH) h.t = -1;
+  }
+  G.shake = Math.max(0, G.shake - dt*60);
+  G.parts = G.parts.filter(p => (p.life -= dt) > 0);
+  for(const p of G.parts){ p.x += p.vx*dt; p.y += p.vy*dt; p.vx *= 0.9; p.vy *= 0.9; }
+  G.texts = G.texts.filter(t => (t.life -= dt) > 0);
+  for(const t of G.texts) t.y -= S*0.12*dt;
+  updHud();
+}
+function nextRound(){
+  G.round++; G.opp = newOpp(G.round); G.time = Math.max(18, 32 - G.round*2); G.combo = 0;
+  addText('סיבוב ' + G.round, W/2, H*0.3, '#fff', 2, 1.6); sfx('bell');
+}
+function endGame(){
+  G.running = false;
+  const b = best(); if(G.score > b) localStorage.setItem('punchBest', G.score);
+  $('overTitle').textContent = 'נגמר הזמן!';
+  $('overText').innerHTML = 'הגעת לסיבוב ' + G.round + '<br>ניקוד: <b>' + G.score + '</b>' + (G.score > b ? '<br>🏆 שיא חדש!' : '<br>שיא: ' + b);
+  setTimeout(() => $('over').classList.remove('hidden'), 700);
 }
 
-function scheduleAllReminders() {
-  reminderTimers.forEach(clearTimeout);
-  reminderTimers = [];
-  if (!currentUser) return;
-  const s = getReminderSettings();
-  const now = new Date();
-  const data = getUserData();
+/* ---------- drawing ---------- */
+function ellipse(x, y, rx, ry, fill, stroke, lw){
+  ctx.beginPath(); ctx.ellipse(x, y, rx, ry, 0, 0, Math.PI*2);
+  if(fill){ ctx.fillStyle = fill; ctx.fill(); }
+  if(stroke){ ctx.strokeStyle = stroke; ctx.lineWidth = lw || 3; ctx.stroke(); }
+}
+function drawBg(){
+  const g = ctx.createLinearGradient(0, 0, 0, H);
+  g.addColorStop(0, '#2a1650'); g.addColorStop(0.6, '#4b2370'); g.addColorStop(1, '#1b1030');
+  ctx.fillStyle = g; ctx.fillRect(0, 0, W, H);
+  // spotlight
+  const sp = ctx.createRadialGradient(W/2, H*0.35, 10, W/2, H*0.35, S*0.8);
+  sp.addColorStop(0, '#ffffff22'); sp.addColorStop(1, '#ffffff00');
+  ctx.fillStyle = sp; ctx.fillRect(0, 0, W, H);
+  // crowd dots
+  ctx.fillStyle = '#00000044';
+  for(let i=0;i<40;i++){ const x = (i*97.3 % 1)*W + (i*53)%W, y = H*0.08 + (i%4)*H*0.05; ellipse(x % W, y, S*0.025, S*0.03, '#0000003a'); }
+  // ropes
+  const cols = ['#e33', '#fff', '#36f'];
+  for(let i=0;i<3;i++){ const y = H*(0.50 + i*0.08); ctx.strokeStyle = cols[i]; ctx.lineWidth = S*0.012;
+    ctx.beginPath(); ctx.moveTo(0, y); ctx.quadraticCurveTo(W/2, y + S*0.03, W, y); ctx.stroke(); }
+  // posts
+  ctx.fillStyle = '#ccc'; ctx.fillRect(W*0.03, H*0.46, S*0.03, H*0.6); ctx.fillRect(W*0.97 - S*0.03, H*0.46, S*0.03, H*0.6);
+}
 
-  // Manual reminders
-  (s.manualReminders||[]).forEach(r => {
-    const t = new Date(r.datetime);
-    const delay = t - now;
-    if (delay > 0 && delay < 86400000 * 7) {
-      const id = setTimeout(() => sendNotification('📚 ' + r.text, lang==='he'?'הגיע הזמן ללמוד!':'Time to study!'), delay);
-      reminderTimers.push(id);
+function drawGlove(x, y, r, side, color, dark){
+  ctx.save(); ctx.translate(x, y); ctx.scale(side, 1);
+  // cuff
+  ctx.fillStyle = '#f4f4f4'; ctx.strokeStyle = '#222'; ctx.lineWidth = r*0.07;
+  ctx.beginPath(); ctx.roundRect(-r*0.55, r*0.55, r*1.1, r*0.6, r*0.15); ctx.fill(); ctx.stroke();
+  // main
+  ctx.fillStyle = color;
+  ctx.beginPath(); ctx.ellipse(0, 0, r*0.85, r*0.8, 0, 0, Math.PI*2); ctx.fill(); ctx.stroke();
+  // thumb
+  ctx.beginPath(); ctx.ellipse(r*0.62, r*0.25, r*0.28, r*0.4, -0.4, 0, Math.PI*2); ctx.fill(); ctx.stroke();
+  // shine / knuckle line
+  ctx.strokeStyle = dark; ctx.lineWidth = r*0.06;
+  ctx.beginPath(); ctx.arc(-r*0.05, -r*0.05, r*0.5, Math.PI*1.1, Math.PI*1.7); ctx.stroke();
+  ellipse(-r*0.3, -r*0.4, r*0.18, r*0.1, '#ffffff66');
+  ctx.restore();
+}
+
+function drawOpponent(){
+  const o = G.opp, hd = head(), r = hd.r;
+  // body / shoulders (moves a bit less than head)
+  const bx = W/2 + o.x*Math.min(W*0.28, S*0.5)*0.8 + o.kx*0.3, by = H*0.40 + r*1.1;
+  ctx.save();
+  ctx.fillStyle = '#2b7a3d'; ctx.strokeStyle = '#111'; ctx.lineWidth = 4;
+  ctx.beginPath(); ctx.moveTo(bx - r*1.9, H+10); ctx.quadraticCurveTo(bx - r*1.9, by + r*0.2, bx - r*0.6, by); ctx.lineTo(bx + r*0.6, by);
+  ctx.quadraticCurveTo(bx + r*1.9, by + r*0.2, bx + r*1.9, H+10); ctx.closePath(); ctx.fill(); ctx.stroke();
+  // neck
+  ctx.fillStyle = '#e0a96d'; ctx.beginPath(); ctx.roundRect(hd.x - r*0.32 + (bx-hd.x)*0.3, by - r*0.5, r*0.64, r*0.7, r*0.2); ctx.fill(); ctx.stroke();
+  ctx.restore();
+
+  // head
+  ctx.save();
+  ctx.translate(hd.x, hd.y); ctx.rotate(o.rot * 0.25 - (o.tilt||0)*0.25);
+  const hurt = o.hurt > 0, ko = o.ko, dizzy = !ko && o.hp < 30;
+  const skin = '#f1c27d', line = '#2a1a10';
+  // ears
+  ellipse(-r*0.95, r*0.05, r*0.18, r*0.26, skin, line, 4);
+  ellipse( r*0.95, r*0.05, r*0.18, r*0.26, skin, line, 4);
+  // face
+  ellipse(0, 0, r*0.95, r*1.12, skin, line, 5);
+  // cheeks get redder with damage
+  const dmg = 1 - o.hp/100;
+  ellipse(-r*0.5, r*0.35, r*0.2, r*0.13, `rgba(255,80,80,${0.15 + dmg*0.45})`);
+  ellipse( r*0.5, r*0.35, r*0.2, r*0.13, `rgba(255,80,80,${0.15 + dmg*0.45})`);
+  // hair
+  ctx.fillStyle = '#3b2412';
+  ctx.beginPath(); ctx.ellipse(0, -r*0.72, r*0.92, r*0.48, 0, Math.PI, Math.PI*2); ctx.fill();
+  for(let i=-3;i<=3;i++){ ctx.beginPath(); ctx.ellipse(i*r*0.24, -r*0.78, r*0.17, r*0.22, i*0.2, 0, Math.PI*2); ctx.fill(); }
+  // bruises
+  for(const b of o.bruises){
+    b.a = Math.min(1, b.a + 0.05);
+    ellipse(b.x*r, b.y*r, b.s*r, b.s*r*0.85, `rgba(120,50,150,${0.35*b.a})`);
+    ellipse(b.x*r, b.y*r, b.s*r*0.55, b.s*r*0.45, `rgba(90,30,120,${0.3*b.a})`);
+  }
+  // eyes
+  const ey = -r*0.12, ex = r*0.34;
+  ctx.strokeStyle = line; ctx.lineWidth = r*0.06; ctx.lineCap = 'round';
+  // pupils look toward the active glove
+  let lookX = 0, lookY = 0;
+  for(const h of G.hands) if(h.t >= 0){ lookX = clamp((h.tx - hd.x)/r, -1, 1); lookY = clamp((h.ty - hd.y)/r, -1, 1); }
+  for(const s of [-1, 1]){
+    const x = s*ex;
+    if(ko){
+      const k = r*0.12; ctx.beginPath(); ctx.moveTo(x-k, ey-k); ctx.lineTo(x+k, ey+k); ctx.moveTo(x+k, ey-k); ctx.lineTo(x-k, ey+k); ctx.stroke();
+    } else if(hurt){
+      const k = r*0.13; ctx.beginPath(); ctx.moveTo(x - s*k, ey - k*0.7); ctx.lineTo(x + s*k, ey); ctx.lineTo(x - s*k, ey + k*0.7); ctx.stroke();
+    } else if(dizzy){
+      ellipse(x, ey, r*0.16, r*0.16, '#fff', line, 3);
+      ctx.beginPath(); const t = performance.now()/150;
+      for(let a=0;a<12;a+=0.3){ const rr = a*r*0.012; ctx.lineTo(x + Math.cos(a+t*s)*rr, ey + Math.sin(a+t*s)*rr); }
+      ctx.lineWidth = r*0.03; ctx.stroke(); ctx.lineWidth = r*0.06;
+    } else {
+      ellipse(x, ey, r*0.17, r*0.15, '#fff', line, 3);
+      ellipse(x + lookX*r*0.06, ey + lookY*r*0.05, r*0.075, r*0.075, '#222');
+      ellipse(x + lookX*r*0.06 - r*0.025, ey + lookY*r*0.05 - r*0.025, r*0.022, r*0.022, '#fff');
+      // black eye from damage
+      if(o.hp < 60 && s === 1) ellipse(x, ey, r*0.22, r*0.2, null, 'rgba(90,30,120,.5)', r*0.07);
     }
-  });
+    // eyebrows
+    ctx.beginPath();
+    if(hurt || ko){ ctx.moveTo(x - r*0.17, ey - r*0.28); ctx.lineTo(x + r*0.17, ey - r*0.3 - s*r*0.04); }
+    else { ctx.moveTo(x - s*r*0.18, ey - r*0.32); ctx.lineTo(x + s*r*0.16, ey - r*0.22); }
+    ctx.stroke();
+  }
+  // nose (gets red & swollen)
+  ellipse(0, r*0.12, r*(0.13 + dmg*0.06), r*(0.11 + dmg*0.05), dmg > 0.5 ? '#e8806a' : '#e3a46a', line, 3);
+  // mouth
+  ctx.lineWidth = r*0.055;
+  if(ko){
+    ctx.beginPath(); ctx.moveTo(-r*0.3, r*0.5);
+    for(let i=0;i<=6;i++) ctx.lineTo(-r*0.3 + i*r*0.1, r*0.5 + (i%2 ? -1 : 1)*r*0.04); ctx.stroke();
+    ellipse(r*0.08, r*0.6, r*0.1, r*0.12, '#ff6b8a', line, 2);
+  } else if(hurt){
+    ellipse(0, r*0.52, r*0.2, r*0.16, '#5a1010', line, 3);
+    ellipse(0, r*0.6, r*0.12, r*0.06, '#ff6b8a');
+  } else {
+    ctx.beginPath(); ctx.moveTo(-r*0.28, r*0.52); ctx.quadraticCurveTo(r*0.05, r*0.6, r*0.3, r*0.44); ctx.stroke();
+    if(o.hp > 70){ ctx.fillStyle = '#fff'; ctx.fillRect(r*0.05, r*0.5, r*0.1, r*0.06); }
+    else { ctx.fillStyle = '#222'; ctx.fillRect(r*0.05, r*0.49, r*0.08, r*0.06); } // lost a tooth
+  }
+  // sweat drop
+  if(dmg > 0.3 && !ko) ellipse(r*0.8, -r*0.45 + ((performance.now()/8) % (r*0.5)), r*0.05, r*0.08, '#8fd3ffcc');
+  ctx.restore();
 
-  // 15:00 daily study reminder
-  if (s.examRemind) {
-    const fire15 = new Date(now); fire15.setHours(15,0,0,0);
-    if (fire15 <= now) fire15.setDate(fire15.getDate()+1);
-    const snoozed15 = getStore('sf2_snooze_15_'+currentUser);
-    const today0 = new Date(now); today0.setHours(0,0,0,0);
-    if (!snoozed15 || new Date(snoozed15) < today0) {
-      const d15 = fire15 - now;
-      const id = setTimeout(() => {
-        const upcoming = data.exams.filter(e => {
-          const diff = Math.round((new Date(e.date) - now) / 86400000);
-          return diff >= 0 && diff <= 7;
-        });
-        if (upcoming.length) {
-          sendNotification(
-            lang==='he'?'📖 הגיע הזמן ללמוד!':'📖 Time to study!',
-            upcoming.map(e=>e.subject).join(', ')
-          );
-          showStudyPrompt(upcoming[0]);
-        }
-      }, d15);
-      reminderTimers.push(id);
+  // dizzy stars / birds
+  if(dizzy || ko){
+    const t = performance.now()/400;
+    for(let i=0;i<5;i++){
+      const a = t + i*Math.PI*2/5;
+      drawStar(hd.x + Math.cos(a)*r*1.1, hd.y - r*1.15 + Math.sin(a)*r*0.25, r*0.1, '#ffd23b');
     }
   }
 
-  // 8:00 morning alert – not enough study
-  const fire8 = new Date(now); fire8.setHours(8,0,0,0);
-  if (fire8 <= now) fire8.setDate(fire8.getDate()+1);
-  const d8 = fire8 - now;
-  const id8 = setTimeout(() => {
-    const ud = getUserData();
-    ud.exams.forEach(exam => {
-      const ed = new Date(exam.date); ed.setHours(0,0,0,0);
-      const diff = Math.round((ed - new Date()) / 86400000);
-      if (diff === 0) {
-        const examId = exam.date+'_'+exam.subject;
-        const studied = getStudyHours(examId);
-        const target = getTargetHours(exam);
-        if (studied < target) {
-          sendNotification(
-            lang==='he'?'⚠️ מבחן היום ולא למדת מספיק!':'⚠️ Exam today – not enough study!',
-            `${exam.subject}: ${studied}/${target} ${lang==='he'?'שעות':'hrs'}`
-          );
-        }
+  // opponent's own gloves (blue)
+  const gr = r*0.42, shake = o.blockShake ? Math.sin(performance.now()/15)*r*0.08 : 0;
+  if(o.block > 0 && !ko){
+    drawGlove(hd.x - r*0.38 + shake, hd.y + r*0.25, gr, 1, '#2f6fe0', '#1a3f8a');
+    drawGlove(hd.x + r*0.38 + shake, hd.y + r*0.25, gr, -1, '#2f6fe0', '#1a3f8a');
+  } else {
+    const drop = ko ? r*0.8 : 0;
+    drawGlove(bx - r*1.35, by + r*0.75 + drop, gr, 1, '#2f6fe0', '#1a3f8a');
+    drawGlove(bx + r*1.35, by + r*0.75 + drop, gr, -1, '#2f6fe0', '#1a3f8a');
+  }
+}
+
+function drawStar(x, y, r, c){
+  ctx.beginPath();
+  for(let i=0;i<10;i++){ const a = i*Math.PI/5 - Math.PI/2, rr = i%2 ? r*0.45 : r; ctx.lineTo(x + Math.cos(a)*rr, y + Math.sin(a)*rr); }
+  ctx.closePath(); ctx.fillStyle = c; ctx.fill(); ctx.strokeStyle = '#0006'; ctx.lineWidth = 2; ctx.stroke();
+}
+
+function drawHands(){
+  const t = performance.now()/1000;
+  for(const h of G.hands){
+    const restX = W/2 + h.side*Math.min(W*0.32, S*0.55), restY = H - S*0.08;
+    const bob = Math.sin(t*4 + h.side) * S*0.012;
+    let x = restX, y = restY + bob, r = S*0.15, e = 0;
+    if(h.t >= 0){
+      const p = h.t / PUNCH;
+      e = p < HITAT ? p/HITAT : 1 - (p - HITAT)/(1 - HITAT);
+      e = 1 - Math.pow(1 - clamp(e, 0, 1), 2);
+      let tx = h.tx, ty = h.ty;
+      if(h.kind === 'upper'){ // arc up from below
+        tx = h.tx; ty = h.ty + (1 - e) * S*0.25;
       }
-    });
-  }, d8);
-  reminderTimers.push(id8);
-
-  // Exam tomorrow evening alert
-  if (s.examRemind) {
-    const [h, m] = (s.eveningTime || '20:00').split(':').map(Number);
-    const fireTime = new Date(now); fireTime.setHours(h, m, 0, 0);
-    if (fireTime > now) {
-      const delay = fireTime - now;
-      const id = setTimeout(() => checkExamTomorrow(true), delay);
-      reminderTimers.push(id);
+      x = restX + (tx - restX) * e;
+      y = restY + (ty - restY) * e;
+      r = S*0.15 * (1 - e*0.45);
     }
-  }
-}
-
-function showStudyPrompt(exam) {
-  // Show toast with "Not today" option
-  const toast = document.getElementById('notif-toast');
-  document.getElementById('notif-text').textContent = (lang==='he'?'זמן ללמוד: ':'Study time: ') + exam.subject;
-  toast.querySelector('.n-icon').textContent = '📖';
-  // Add snooze button
-  let snoozeBtn = document.getElementById('snooze-btn');
-  if (!snoozeBtn) {
-    snoozeBtn = document.createElement('button');
-    snoozeBtn.id = 'snooze-btn';
-    snoozeBtn.style.cssText = 'background:var(--surface3);border:1px solid var(--border);color:var(--text);border-radius:8px;padding:4px 10px;font-size:11px;font-family:inherit;cursor:pointer;margin-right:8px;';
-    toast.appendChild(snoozeBtn);
-  }
-  snoozeBtn.textContent = lang==='he'?'לא היום':'Not today';
-  snoozeBtn.onclick = () => {
-    setStore('sf2_snooze_15_'+currentUser, new Date().toISOString());
-    toast.classList.remove('show');
-    showToast(lang==='he'?'בסדר, נזכיר מחר 👍':'OK, reminder postponed 👍', '💤');
-  };
-  toast.classList.add('show');
-  setTimeout(() => toast.classList.remove('show'), 8000);
-}
-
-function checkExamTomorrow(sendAlert = false) {
-  if (!currentUser) return;
-  const s = getReminderSettings();
-  const data = getUserData();
-  const tomorrow = new Date(); tomorrow.setDate(tomorrow.getDate() + 1);
-  const tStr = tomorrow.toISOString().split('T')[0];
-  const exams = data.exams.filter(e => e.date === tStr);
-  const banner = document.getElementById('reminders-banner');
-  if (exams.length > 0) {
-    const names = exams.map(e => e.subject).join(', ');
-    if (banner) {
-      banner.innerHTML = `<div class="notif-banner"><div class="nb-icon">⚠️</div><div class="nb-text">${lang==='he'?'מבחן מחר: ':'Exam tomorrow: '}<strong>${names}</strong>${lang==='he'?' – האם למדת מספיק?':' – Are you ready?'}</div></div>`;
+    // arm: from bottom edge to glove
+    const ax = restX + h.side*S*0.12, ay = H + S*0.05;
+    const ang = Math.atan2(y - ay, x - ax);
+    const nx = Math.cos(ang + Math.PI/2), ny = Math.sin(ang + Math.PI/2);
+    const w0 = S*0.11, w1 = r*0.55;
+    ctx.beginPath();
+    ctx.moveTo(ax + nx*w0, ay + ny*w0); ctx.lineTo(x + nx*w1, y + ny*w1 + r*0.6);
+    ctx.lineTo(x - nx*w1, y - ny*w1 + r*0.6); ctx.lineTo(ax - nx*w0, ay - ny*w0); ctx.closePath();
+    ctx.fillStyle = '#d99a62'; ctx.fill(); ctx.strokeStyle = '#2a1a10'; ctx.lineWidth = 4; ctx.stroke();
+    // motion lines
+    if(e > 0.2 && e < 0.98){
+      ctx.strokeStyle = '#ffffff55'; ctx.lineWidth = 3;
+      for(let i=-1;i<=1;i++){ ctx.beginPath(); ctx.moveTo(x - Math.cos(ang)*r*1.3 + nx*i*r*0.4, y - Math.sin(ang)*r*1.3 + ny*i*r*0.4);
+        ctx.lineTo(x - Math.cos(ang)*r*2.2 + nx*i*r*0.4, y - Math.sin(ang)*r*2.2 + ny*i*r*0.4); ctx.stroke(); }
     }
-    if (sendAlert && s.examRemind) {
-      sendNotification(lang==='he'?'⚠️ מבחן מחר!':'⚠️ Exam Tomorrow!', names, '🎯');
-    }
-  } else {
-    if (banner) banner.innerHTML = '';
+    drawGlove(x, y, r, -h.side, '#e3262d', '#8f1218');
   }
 }
 
-function addManualReminder() {
-  const text = document.getElementById('manual-rem-text')?.value.trim();
-  const datetime = document.getElementById('manual-rem-time')?.value;
-  if (!text || !datetime) return;
-  const s = getReminderSettings();
-  s.manualReminders = s.manualReminders || [];
-  s.manualReminders.push({ text, datetime, id: Date.now() });
-  setStore('sf2_reminders_' + currentUser, s);
-  document.getElementById('manual-rem-text').value = '';
-  document.getElementById('manual-rem-time').value = '';
-  scheduleAllReminders();
-  renderScheduled();
-  showToast(lang==='he'?'תזכורת נוספה!':'Reminder added!', '✅');
-}
-
-function deleteManualReminder(id) {
-  const s = getReminderSettings();
-  s.manualReminders = (s.manualReminders || []).filter(r => r.id !== id);
-  setStore('sf2_reminders_' + currentUser, s);
-  scheduleAllReminders();
-  renderScheduled();
-}
-
-function renderScheduled() {
-  const list = document.getElementById('scheduled-list');
-  if (!list) return;
-  const s = getReminderSettings();
-  const reminders = s.manualReminders || [];
-  const now = new Date();
-  const future = reminders.filter(r => new Date(r.datetime) > now);
-  if (!future.length) {
-    list.innerHTML = `<div class="empty-state"><div class="big">🔕</div><p>${lang==='he'?'אין תזכורות מתוזמנות':'No reminders scheduled yet'}</p></div>`;
-    return;
+function drawFx(){
+  for(const p of G.parts){
+    const a = p.life / p.max;
+    if(p.star) drawStar(p.x, p.y, S*0.02*a + 3, p.c);
+    else { ctx.globalAlpha = a; ellipse(p.x, p.y, S*0.008 + 2, S*0.008 + 2, p.c); ctx.globalAlpha = 1; }
   }
-  list.innerHTML = future.map(r => {
-    const d = new Date(r.datetime);
-    const fmt = d.toLocaleDateString(lang==='he'?'he-IL':'en-US', {weekday:'short',month:'short',day:'numeric'}) + ' ' + d.toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'});
-    return `<div class="reminder-card"><div class="r-icon">⏰</div><div class="r-info"><h4>${r.text}</h4><p>${fmt}</p></div><button class="delete-btn" onclick="deleteManualReminder(${r.id})">✕</button></div>`;
-  }).join('');
-}
-
-// ─── GREETING BANNER ─────────────────────────────────
-const ACTIVITY_ICONS = {
-  'כדורגל':'⚽', 'soccer':'⚽', 'football':'⚽',
-  'כדורסל':'🏀', 'basketball':'🏀',
-  'טניס':'🎾', 'tennis':'🎾',
-  'שחמט':'♟️', 'chess':'♟️',
-  'כדורעף':'🏐', 'volleyball':'🏐',
-  'שחייה':'🏊', 'swimming':'🏊',
-  'ריצה':'🏃', 'running':'🏃',
-  'גיטרה':'🎸', 'guitar':'🎸',
-  'פסנתר':'🎹', 'piano':'🎹',
-  'ציור':'🎨', 'art':'🎨',
-};
-
-function getActivityIcon(name) {
-  const lower = name.toLowerCase();
-  for (const [key, icon] of Object.entries(ACTIVITY_ICONS)) {
-    if (lower.includes(key.toLowerCase())) return icon;
-  }
-  return '🏃';
-}
-
-function checkActivityGreeting() {
-  if (!currentUser) return;
-  const data = getUserData();
-  if (!data.activities || !data.activities.length) return;
-  const now = new Date();
-  const todayDay = now.getDay();
-  const nowMins = now.getHours() * 60 + now.getMinutes();
-
-  // Only show if there's a WEEKLY activity with a start time within 30 mins from now
-  const upcoming = data.activities.filter(act => {
-    if (act.type !== 'weekly') return false;
-    if (!(act.days||[]).includes(todayDay)) return false;
-    if (!act.start || !act.start.includes(':')) return false;
-    const [h, m] = act.start.split(':').map(Number);
-    if (isNaN(h) || isNaN(m)) return false;
-    const startMins = h * 60 + m;
-    return nowMins >= startMins - 30 && nowMins < startMins;
-  });
-
-  if (!upcoming.length) return;
-
-  const act = upcoming[0];
-  const actKey = 'sf2_greeted_' + currentUser + '_' + act.name + '_' + now.toDateString();
-  const dismissedKey = 'sf2_dismissed_' + currentUser + '_' + act.name + '_' + now.toDateString();
-
-  if (getStore(dismissedKey)) return;
-  if (getStore(actKey)) return;
-  setStore(actKey, true);
-
-  const icon = getActivityIcon(act.name);
-
-  // Check if studied today
-  const studiedToday = (data.exams||[]).some(e => {
-    const ed = new Date(e.date); ed.setHours(0,0,0,0);
-    const diff = Math.round((ed - now) / 86400000);
-    if (diff < 0 || diff > 3) return false;
-    return getStudyHours(e.date+'_'+e.subject) > 0;
-  });
-
-  const banner = document.getElementById('greeting-banner');
-  document.getElementById('gb-icon').textContent = icon;
-
-  if (studiedToday) {
-    document.getElementById('gb-title').textContent = lang==='he'
-      ? `כל הכבוד על הלמידה! ${icon}`
-      : `Great studying! ${icon}`;
-    document.getElementById('gb-sub').textContent = lang==='he'
-      ? `עכשיו בהצלחה ב${act.name}! 💪`
-      : `Now go crush ${act.name}! 💪`;
-  } else {
-    document.getElementById('gb-title').textContent = lang==='he'
-      ? `בהצלחה ב${act.name}! ${icon}`
-      : `Good luck at ${act.name}! ${icon}`;
-    document.getElementById('gb-sub').textContent = lang==='he'
-      ? 'תתאמץ ותיהנה 💪'
-      : 'Have a great session 💪';
-  }
-
-  banner.classList.add('show');
-
-  // Auto hide when activity starts
-  const [h2, m2] = act.start.split(':').map(Number);
-  const msUntilStart = ((h2*60+m2) - nowMins) * 60 * 1000;
-  if (msUntilStart > 0) setTimeout(() => banner.classList.remove('show'), msUntilStart);
-}
-
-function closeGreeting() {
-  const banner = document.getElementById('greeting-banner');
-  banner.classList.remove('show');
-  // Save dismissed state
-  const now = new Date();
-  const data = getUserData();
-  const todayDay = now.getDay();
-  const nowMins = now.getHours() * 60 + now.getMinutes();
-  const act = (data.activities||[]).find(a => {
-    if (a.type !== 'weekly') return false;
-    if (!(a.days||[]).includes(todayDay)) return false;
-    if (!a.start) return false;
-    const [h2,m2] = a.start.split(':').map(Number);
-    const sm = h2*60+m2;
-    return nowMins >= sm-30 && nowMins < sm;
-  });
-  if (act) {
-    setStore('sf2_dismissed_'+currentUser+'_'+act.name+'_'+now.toDateString(), true);
-  }
-}
-document.addEventListener('keydown',e=>{if(e.key==='Enter'&&document.getElementById('auth-screen').style.display!=='none')handleAuth();});
-buildDaysCheckboxes();
-
-// Auto-login if session exists
-const savedSession = getStore('sf2_session');
-if (savedSession) {
-  const users = getStore('sf2_users') || {};
-  if (users[savedSession]) {
-    currentUser = savedSession;
-    document.getElementById('user-pill').textContent = (lang==='he'?'👋 שלום, ':'👋 Hi, ') + users[savedSession].fullname + '!';
-    document.getElementById('auth-screen').style.display = 'none';
-    document.getElementById('app').style.display = 'flex';
-    resetAI(); renderAll(); loadReminderUI(); scheduleAllReminders(); checkExamTomorrow();
-    setTimeout(checkActivityGreeting, 800);
+  ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.direction = 'rtl';
+  for(const t of G.texts){
+    const a = clamp(t.life / t.max * 2, 0, 1), sc = 1 + (1 - t.life/t.max)*0.3;
+    ctx.globalAlpha = a;
+    ctx.font = `900 ${S*0.065*t.size*sc}px "Segoe UI",Arial,sans-serif`;
+    ctx.lineWidth = S*0.012; ctx.strokeStyle = '#000'; ctx.strokeText(t.t, t.x, t.y);
+    ctx.fillStyle = t.c; ctx.fillText(t.t, t.x, t.y);
+    ctx.globalAlpha = 1;
   }
 }
 
-// Hide splash after content rendered
-const splash = document.getElementById('splash');
-setTimeout(() => {
-  splash.style.transition = 'opacity 0.25s';
-  splash.style.opacity = '0';
-  setTimeout(() => splash.style.display = 'none', 250);
-}, 350);
-
-// Override scheduleAllReminders to use SW when available
-const _origSchedule = scheduleAllReminders;
-function scheduleViaSwOrTimer(title, body, delayMs) {
-  if (window._swReg?.active && delayMs > 0) {
-    window._swReg.active.postMessage({ type:'SCHEDULE_NOTIFICATION', title, body, delay: delayMs });
-  } else if (delayMs > 0) {
-    const id = setTimeout(() => sendNotification(title, body), delayMs);
-    reminderTimers.push(id);
-  }
+let last = performance.now();
+function frame(now){
+  const dt = Math.min(0.033, (now - last)/1000); last = now;
+  if(G){ update(dt); }
+  ctx.save();
+  if(G && G.shake > 0) ctx.translate(rand(-1,1)*G.shake, rand(-1,1)*G.shake);
+  drawBg();
+  if(G){ drawOpponent(); drawHands(); drawFx(); }
+  ctx.restore();
+  requestAnimationFrame(frame);
 }
+newGame(); G.running = false;
+requestAnimationFrame(frame);
 
-// Patch checkExamTomorrow to also schedule via SW
-const _origCheckExam = checkExamTomorrow;
-function checkExamTomorrow(sendAlert = false) {
-  if (!currentUser) return;
-  const s = getReminderSettings();
-  const data = getUserData();
-  const tomorrow = new Date(); tomorrow.setDate(tomorrow.getDate() + 1);
-  const tStr = tomorrow.toISOString().split('T')[0];
-  const exams = data.exams.filter(e => e.date === tStr);
-  const banner = document.getElementById('reminders-banner');
-  if (exams.length > 0) {
-    const names = exams.map(e => e.subject).join(', ');
-    if (banner) {
-      banner.innerHTML = `<div class="notif-banner"><div class="nb-icon">⚠️</div><div class="nb-text">${lang==='he'?'מבחן מחר: ':'Exam tomorrow: '}<strong>${names}</strong>${lang==='he'?' – האם למדת מספיק?':' – Are you ready?'}</div></div>`;
-    }
-    if (sendAlert && s.examRemind) {
-      sendNotification(lang==='he'?'⚠️ מבחן מחר!':'⚠️ Exam Tomorrow!', names);
-    }
-  } else {
-    if (banner) banner.innerHTML = '';
-  }
-}
-
-// Service Worker disabled - not needed for basic functionality
-
+function start(){ audio(); newGame(); $('start').classList.add('hidden'); $('over').classList.add('hidden'); sfx('bell'); addText('קרב!', W/2, H*0.3, '#ffd23b', 2.2, 1.4); }
+$('startBtn').onclick = start;
+$('againBtn').onclick = start;
+})();
 </script>
 </body>
 </html>
