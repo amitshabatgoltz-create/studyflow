@@ -16,6 +16,18 @@
   .overlay button{margin-top:18px;font-size:24px;font-weight:800;padding:14px 44px;border:0;border-radius:40px;background:#ff3b3b;color:#fff;box-shadow:0 6px 0 #9b1b1b;cursor:pointer}
   .overlay button:active{transform:translateY(4px);box-shadow:0 2px 0 #9b1b1b}
   .hidden{display:none}
+  .overlay{overflow-y:auto;justify-content:safe center}
+  #start p{font-size:clamp(13px,3vw,16px);margin:3px 0}
+  #start h1{font-size:clamp(36px,8vw,64px)}
+  #custom{display:flex;gap:18px;align-items:center;justify-content:center;flex-wrap:wrap;margin:6px 0;background:#ffffff12;border-radius:18px;padding:12px 16px}
+  #preview{width:170px;height:190px}
+  .opts{display:flex;flex-direction:column;gap:8px;text-align:right}
+  .row{display:flex;align-items:center;gap:6px;flex-wrap:wrap}
+  .row b{min-width:78px;font-size:15px}
+  .overlay button.sw{width:30px;height:30px;border-radius:50%;border:3px solid #fff4;padding:0;margin:0;box-shadow:none}
+  .overlay button.ch{font-size:14px;font-weight:700;font-family:inherit;padding:5px 11px;margin:0;border-radius:14px;border:2px solid #fff4;background:#0004;color:#fff;box-shadow:none}
+  .overlay button.sw:active,.overlay button.ch:active{transform:none}
+  .sel{border-color:#ffd23b!important;box-shadow:0 0 0 2px #ffd23b}
   kbd{background:#fff2;border:1px solid #fff6;border-radius:5px;padding:1px 7px;font-family:inherit}
 </style>
 </head>
@@ -32,10 +44,20 @@
 
 <div id="start" class="overlay">
   <h1>🥊 אגרוף!</h1>
-  <p>תרביץ לבחור עד נוק-אאוט לפני שנגמר הזמן.</p>
+  <p>תעצב את הדמות, ואז תרביץ לה עד נוק-אאוט לפני שנגמר הזמן.</p>
   <p>לחיצה על צד שמאל או ימין של המסך = אגרוף ביד הזאת (אפשר לכוון ללחיצה).<br>
      מקלדת: <kbd>A</kbd>/<kbd>←</kbd> יד שמאל, <kbd>D</kbd>/<kbd>→</kbd> יד ימין, <kbd>רווח</kbd> אפרקאט.</p>
   <p>כשהוא מרים כפפות הוא חוסם, אז חכה רגע או תתקוף מהצד. רצף מכות מכפיל את הניקוד.</p>
+  <div id="custom">
+    <canvas id="preview" width="340" height="380"></canvas>
+    <div class="opts">
+      <div class="row"><b>שיער</b><span id="o-hairStyle"></span></div>
+      <div class="row"><b>צבע שיער</b><span id="o-hair"></span></div>
+      <div class="row"><b>צבע עור</b><span id="o-skin"></span></div>
+      <div class="row"><b>הבעה</b><span id="o-face"></span></div>
+      <div class="row"><b>חולצה</b><span id="o-shirt"></span></div>
+    </div>
+  </div>
   <button id="startBtn">התחל!</button>
   <p id="best" style="opacity:.8"></p>
 </div>
@@ -47,13 +69,14 @@
 
 <script>
 (() => {
-const cv = document.getElementById('c'), ctx = cv.getContext('2d');
+const cv = document.getElementById('c'), mainCtx = cv.getContext('2d');
+let ctx = mainCtx;
 let W, H, S;
 function resize(){
   const d = Math.min(devicePixelRatio || 1, 2);
   W = innerWidth; H = innerHeight; S = Math.min(W, H);
   cv.width = W * d; cv.height = H * d;
-  ctx.setTransform(d, 0, 0, d, 0, 0);
+  mainCtx.setTransform(d, 0, 0, d, 0, 0);
 }
 addEventListener('resize', resize); resize();
 
@@ -79,6 +102,41 @@ function sfx(type){
     for(let i=0;i<len;i++) d[i]=(Math.random()*2-1)*(1-i/len);
     const n = ac.createBufferSource(), ng = ac.createGain(); n.buffer=b; ng.gain.value=.5; n.connect(ng); ng.connect(ac.destination); n.start(t);
   }
+}
+
+/* ---------- character customization ---------- */
+const OPTS = {
+  hairStyle: [['fringe','פוני'],['spiky','קוצים'],['curly','מתולתל'],['bald','קרח']],
+  hair:  ['#2b1a0e','#5a3418','#a8662b','#e8c15a','#d9481c','#111111','#3a7bd5','#2fbf71'],
+  skin:  ['#ffe0c2','#f1c27d','#d9a066','#b5774a','#8d5524','#5c3a1e','#9be07a'],
+  face:  [['tongue','לשון בחוץ 😛'],['smirk','מחייך בציניות'],['angry','עצבני'],['cry','בכיין']],
+  shirt: ['#2b7a3d','#c62828','#1f4fa3','#222222','#7b3fb5','#f0a020'],
+};
+const CFG = Object.assign({ hairStyle:'fringe', hair:'#2b1a0e', skin:'#f1c27d', face:'tongue', shirt:'#2b7a3d' },
+  JSON.parse(localStorage.getItem('punchChar') || '{}'));
+function buildCustom(){
+  for(const key in OPTS){
+    const box = $('o-' + key); box.innerHTML = '';
+    for(const v of OPTS[key]){
+      const val = Array.isArray(v) ? v[0] : v, b = document.createElement('button');
+      if(Array.isArray(v)){ b.className = 'ch'; b.textContent = v[1]; } else { b.className = 'sw'; b.style.background = v; }
+      if(CFG[key] === val) b.classList.add('sel');
+      b.onclick = () => { CFG[key] = val; localStorage.setItem('punchChar', JSON.stringify(CFG)); buildCustom(); };
+      box.appendChild(b);
+    }
+  }
+}
+const pv = $('preview'), pctx = pv.getContext('2d');
+const previewOpp = { hp:100, hurt:0, ko:0, bruises:[], rot:0, tilt:0 };
+function drawPreview(){
+  ctx = pctx;
+  pctx.setTransform(1,0,0,1,0,0); pctx.clearRect(0, 0, pv.width, pv.height);
+  const r = 120;
+  pctx.fillStyle = CFG.shirt; pctx.strokeStyle = '#111'; pctx.lineWidth = 4;
+  pctx.beginPath(); pctx.moveTo(10, 390); pctx.quadraticCurveTo(10, 300, 110, 290); pctx.lineTo(230, 290); pctx.quadraticCurveTo(330, 300, 330, 390); pctx.fill(); pctx.stroke();
+  pctx.translate(170, 160);
+  drawFace(previewOpp, r, Math.sin(performance.now()/700)*0.6, 0);
+  ctx = mainCtx;
 }
 
 /* ---------- game state ---------- */
@@ -183,6 +241,11 @@ function update(dt){
   }
   if(G.comboT > 0 && (G.comboT -= dt) <= 0) G.combo = 0;
 
+  // taunts
+  if(G.running && !o.ko && o.hurt <= 0 && Math.random() < dt*0.25){
+    const hd = head(), T = ['נה נה נה!','לא תפגע בי!','זה כל מה שיש לך?','חלש!','😛','יאללה, תנסה!'];
+    addText(T[Math.floor(Math.random()*T.length)], hd.x, hd.y - hd.r*1.45, '#fff', 0.6, 1.2);
+  }
   // AI movement (dodging side to side)
   if(!o.ko){
     if((o.moveT -= dt) <= 0){ o.tx = rand(-1, 1); o.moveT = rand(0.5, 1.4) / o.speed; }
@@ -278,18 +341,59 @@ function drawOpponent(){
   // body / shoulders (moves a bit less than head)
   const bx = W/2 + o.x*Math.min(W*0.28, S*0.5)*0.8 + o.kx*0.3, by = H*0.40 + r*1.1;
   ctx.save();
-  ctx.fillStyle = '#2b7a3d'; ctx.strokeStyle = '#111'; ctx.lineWidth = 4;
+  ctx.fillStyle = CFG.shirt; ctx.strokeStyle = '#111'; ctx.lineWidth = 4;
   ctx.beginPath(); ctx.moveTo(bx - r*1.9, H+10); ctx.quadraticCurveTo(bx - r*1.9, by + r*0.2, bx - r*0.6, by); ctx.lineTo(bx + r*0.6, by);
   ctx.quadraticCurveTo(bx + r*1.9, by + r*0.2, bx + r*1.9, H+10); ctx.closePath(); ctx.fill(); ctx.stroke();
   // neck
-  ctx.fillStyle = '#e0a96d'; ctx.beginPath(); ctx.roundRect(hd.x - r*0.32 + (bx-hd.x)*0.3, by - r*0.5, r*0.64, r*0.7, r*0.2); ctx.fill(); ctx.stroke();
+  ctx.fillStyle = CFG.skin; ctx.beginPath(); ctx.roundRect(hd.x - r*0.32 + (bx-hd.x)*0.3, by - r*0.5, r*0.64, r*0.7, r*0.2); ctx.fill(); ctx.stroke();
   ctx.restore();
 
   // head
   ctx.save();
   ctx.translate(hd.x, hd.y); ctx.rotate(o.rot * 0.25 - (o.tilt||0)*0.25);
+  let lookX = 0, lookY = 0;
+  for(const h of G.hands) if(h.t >= 0){ lookX = clamp((h.tx - hd.x)/r, -1, 1); lookY = clamp((h.ty - hd.y)/r, -1, 1); }
+  drawFace(o, r, lookX, lookY);
+  ctx.restore();
+  drawOpponentRest(o, hd, r, bx, by);
+}
+
+function drawHairBack(r){
+  ctx.fillStyle = CFG.hair;
+  if(CFG.hairStyle === 'fringe'){ ctx.beginPath(); ctx.ellipse(0, -r*0.35, r*1.06, r*0.95, 0, Math.PI*0.95, Math.PI*2.05); ctx.fill(); }
+  if(CFG.hairStyle === 'curly'){ for(let i=0;i<11;i++){ const a = Math.PI*(0.9 + i*0.12); ellipse(Math.cos(a)*r*0.98, -r*0.2 + Math.sin(a)*r*0.95, r*0.24, r*0.24, CFG.hair); } }
+}
+function drawHairFront(r){
+  ctx.fillStyle = CFG.hair; ctx.strokeStyle = '#0003'; ctx.lineWidth = r*0.02;
+  const st = CFG.hairStyle;
+  if(st === 'fringe'){
+    // dome + thick bangs falling over the forehead
+    ctx.beginPath(); ctx.ellipse(0, -r*0.6, r*0.97, r*0.55, 0, Math.PI, Math.PI*2); ctx.fill();
+    ctx.beginPath(); ctx.moveTo(-r*0.97, -r*0.55);
+    ctx.quadraticCurveTo(-r*0.9, -r*1.1, 0, -r*1.13); ctx.quadraticCurveTo(r*0.9, -r*1.1, r*0.97, -r*0.55);
+    const n = 9;
+    for(let i=n;i>=0;i--){ const x = -r*0.97 + i*(r*1.94/n), tip = (i%2 ? r*0.12 : 0) + r*0.02*Math.sin(i*1.7);
+      ctx.lineTo(x, -r*0.6 + tip - Math.abs(x)*0.08); }
+    ctx.closePath(); ctx.fill();
+    // strand lines
+    for(let i=-3;i<=3;i++){ ctx.beginPath(); ctx.moveTo(i*r*0.12, -r*1.05); ctx.quadraticCurveTo(i*r*0.2, -r*0.75, i*r*0.26 + r*0.05, -r*0.5); ctx.stroke(); }
+  } else if(st === 'spiky'){
+    ctx.beginPath(); ctx.moveTo(-r*0.92, -r*0.45);
+    for(let i=0;i<=8;i++){ const a = Math.PI*(1 + i/8), x = Math.cos(a)*r*0.95, y = -r*0.5 + Math.sin(a)*r*0.6;
+      ctx.lineTo(x, y); if(i<8){ const a2 = Math.PI*(1 + (i+0.5)/8); ctx.lineTo(Math.cos(a2)*r*1.25, -r*0.5 + Math.sin(a2)*r*0.95); } }
+    ctx.lineTo(r*0.92, -r*0.45); ctx.quadraticCurveTo(0, -r*0.75, -r*0.92, -r*0.45); ctx.fill();
+  } else if(st === 'curly'){
+    for(let i=-4;i<=4;i++) ellipse(i*r*0.21, -r*0.78 + Math.abs(i)*r*0.05, r*0.2, r*0.2, CFG.hair);
+    for(let i=-3;i<=3;i++) ellipse(i*r*0.24, -r*0.98 + Math.abs(i)*r*0.06, r*0.2, r*0.2, CFG.hair);
+  } else { // bald: shine
+    ellipse(-r*0.3, -r*0.8, r*0.25, r*0.1, '#ffffff55');
+  }
+}
+
+function drawFace(o, r, lookX, lookY){
   const hurt = o.hurt > 0, ko = o.ko, dizzy = !ko && o.hp < 30;
-  const skin = '#f1c27d', line = '#2a1a10';
+  const skin = CFG.skin, line = '#2a1a10', face = CFG.face;
+  drawHairBack(r);
   // ears
   ellipse(-r*0.95, r*0.05, r*0.18, r*0.26, skin, line, 4);
   ellipse( r*0.95, r*0.05, r*0.18, r*0.26, skin, line, 4);
@@ -299,10 +403,6 @@ function drawOpponent(){
   const dmg = 1 - o.hp/100;
   ellipse(-r*0.5, r*0.35, r*0.2, r*0.13, `rgba(255,80,80,${0.15 + dmg*0.45})`);
   ellipse( r*0.5, r*0.35, r*0.2, r*0.13, `rgba(255,80,80,${0.15 + dmg*0.45})`);
-  // hair
-  ctx.fillStyle = '#3b2412';
-  ctx.beginPath(); ctx.ellipse(0, -r*0.72, r*0.92, r*0.48, 0, Math.PI, Math.PI*2); ctx.fill();
-  for(let i=-3;i<=3;i++){ ctx.beginPath(); ctx.ellipse(i*r*0.24, -r*0.78, r*0.17, r*0.22, i*0.2, 0, Math.PI*2); ctx.fill(); }
   // bruises
   for(const b of o.bruises){
     b.a = Math.min(1, b.a + 0.05);
@@ -312,9 +412,6 @@ function drawOpponent(){
   // eyes
   const ey = -r*0.12, ex = r*0.34;
   ctx.strokeStyle = line; ctx.lineWidth = r*0.06; ctx.lineCap = 'round';
-  // pupils look toward the active glove
-  let lookX = 0, lookY = 0;
-  for(const h of G.hands) if(h.t >= 0){ lookX = clamp((h.tx - hd.x)/r, -1, 1); lookY = clamp((h.ty - hd.y)/r, -1, 1); }
   for(const s of [-1, 1]){
     const x = s*ex;
     if(ko){
@@ -330,12 +427,16 @@ function drawOpponent(){
       ellipse(x, ey, r*0.17, r*0.15, '#fff', line, 3);
       ellipse(x + lookX*r*0.06, ey + lookY*r*0.05, r*0.075, r*0.075, '#222');
       ellipse(x + lookX*r*0.06 - r*0.025, ey + lookY*r*0.05 - r*0.025, r*0.022, r*0.022, '#fff');
+      if(face === 'cry'){ const ty = (performance.now()/6 + s*40) % (r*0.6); ellipse(x + s*r*0.12, ey + r*0.15 + ty, r*0.04, r*0.06, '#8fd3ffcc'); }
       // black eye from damage
       if(o.hp < 60 && s === 1) ellipse(x, ey, r*0.22, r*0.2, null, 'rgba(90,30,120,.5)', r*0.07);
     }
     // eyebrows
     ctx.beginPath();
     if(hurt || ko){ ctx.moveTo(x - r*0.17, ey - r*0.28); ctx.lineTo(x + r*0.17, ey - r*0.3 - s*r*0.04); }
+    else if(face === 'angry'){ ctx.moveTo(x - s*r*0.18, ey - r*0.36); ctx.lineTo(x + s*r*0.16, ey - r*0.18); }
+    else if(face === 'cry'){ ctx.moveTo(x - s*r*0.18, ey - r*0.22); ctx.lineTo(x + s*r*0.16, ey - r*0.34); }
+    else if(face === 'tongue'){ ctx.moveTo(x - r*0.17, ey - r*0.3); ctx.quadraticCurveTo(x, ey - r*0.42, x + r*0.17, ey - r*0.3); }
     else { ctx.moveTo(x - s*r*0.18, ey - r*0.32); ctx.lineTo(x + s*r*0.16, ey - r*0.22); }
     ctx.stroke();
   }
@@ -350,6 +451,24 @@ function drawOpponent(){
   } else if(hurt){
     ellipse(0, r*0.52, r*0.2, r*0.16, '#5a1010', line, 3);
     ellipse(0, r*0.6, r*0.12, r*0.06, '#ff6b8a');
+  } else if(face === 'tongue'){
+    // open mouth with tongue wagging out
+    const wag = Math.sin(performance.now()/120) * r*0.05;
+    ellipse(0, r*0.5, r*0.26, r*0.13, '#5a1010', line, 3);
+    if(o.hp > 70){ ctx.fillStyle = '#fff'; ctx.fillRect(-r*0.15, r*0.38, r*0.3, r*0.06); }
+    ctx.save(); ctx.translate(wag*0.5, 0);
+    ctx.beginPath(); ctx.moveTo(-r*0.17, r*0.5);
+    ctx.lineTo(-r*0.17 + wag*0.2, r*0.78); ctx.quadraticCurveTo(wag, r*0.98, r*0.17 + wag*0.2, r*0.78);
+    ctx.lineTo(r*0.17, r*0.5); ctx.closePath();
+    ctx.fillStyle = '#ff6b8a'; ctx.fill(); ctx.strokeStyle = line; ctx.lineWidth = r*0.035; ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(wag*0.3, r*0.58); ctx.lineTo(wag*0.6, r*0.8); ctx.strokeStyle = '#d94a6a'; ctx.stroke();
+    ctx.restore();
+  } else if(face === 'angry'){
+    ctx.fillStyle = '#fff'; ctx.strokeStyle = line;
+    ctx.beginPath(); ctx.roundRect(-r*0.26, r*0.44, r*0.52, r*0.14, r*0.04); ctx.fill(); ctx.stroke();
+    ctx.lineWidth = r*0.02; for(let i=1;i<5;i++){ ctx.beginPath(); ctx.moveTo(-r*0.26 + i*r*0.104, r*0.44); ctx.lineTo(-r*0.26 + i*r*0.104, r*0.58); ctx.stroke(); }
+  } else if(face === 'cry'){
+    ctx.beginPath(); ctx.moveTo(-r*0.25, r*0.58); ctx.quadraticCurveTo(0, r*0.38, r*0.25, r*0.58); ctx.stroke();
   } else {
     ctx.beginPath(); ctx.moveTo(-r*0.28, r*0.52); ctx.quadraticCurveTo(r*0.05, r*0.6, r*0.3, r*0.44); ctx.stroke();
     if(o.hp > 70){ ctx.fillStyle = '#fff'; ctx.fillRect(r*0.05, r*0.5, r*0.1, r*0.06); }
@@ -357,7 +476,11 @@ function drawOpponent(){
   }
   // sweat drop
   if(dmg > 0.3 && !ko) ellipse(r*0.8, -r*0.45 + ((performance.now()/8) % (r*0.5)), r*0.05, r*0.08, '#8fd3ffcc');
-  ctx.restore();
+  drawHairFront(r);
+}
+
+function drawOpponentRest(o, hd, r, bx, by){
+  const ko = o.ko, dizzy = !ko && o.hp < 30;
 
   // dizzy stars / birds
   if(dizzy || ko){
@@ -444,6 +567,7 @@ let last = performance.now();
 function frame(now){
   const dt = Math.min(0.033, (now - last)/1000); last = now;
   if(G){ update(dt); }
+  if(!$('start').classList.contains('hidden')) drawPreview();
   ctx.save();
   if(G && G.shake > 0) ctx.translate(rand(-1,1)*G.shake, rand(-1,1)*G.shake);
   drawBg();
@@ -455,6 +579,7 @@ newGame(); G.running = false;
 requestAnimationFrame(frame);
 
 function start(){ audio(); newGame(); $('start').classList.add('hidden'); $('over').classList.add('hidden'); sfx('bell'); addText('קרב!', W/2, H*0.3, '#ffd23b', 2.2, 1.4); }
+buildCustom();
 $('startBtn').onclick = start;
 $('againBtn').onclick = start;
 })();
